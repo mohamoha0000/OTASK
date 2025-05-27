@@ -34,6 +34,7 @@ CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT,  -- يمكن أن تكون NULL للمهام الشخصية
     title VARCHAR(255) NOT NULL,
+    deliverable_link TEXT,
     description TEXT,
     start_date DATE,
     end_date DATE,
