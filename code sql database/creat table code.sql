@@ -39,7 +39,7 @@ CREATE TABLE tasks (
     start_date DATE,
     end_date DATE,
     priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
-    status ENUM('in_progress', 'pending_review', 'completed') DEFAULT 'in_progress',
+    status ENUM('in_progress','to_do','pending_review','revision_needed','completed') DEFAULT 'to_do',
     assigned_user_id INT, -- يمكن أن تكون NULL (Can be NULL if not yet assigned or a personal task without specific assignment)
     created_by_id INT NOT NULL, -- The user who created this task
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -64,7 +64,7 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL, -- The recipient of the notification
     sender_id INT,        -- NEW: The user who originated/sent the notification (NULL for system-generated notifications like deadlines)
-    type ENUM('new_task', 'deadline_soon', 'admin_message') NOT NULL,
+    type ENUM('system_message', 'admin_message') NOT NULL,
     content TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
