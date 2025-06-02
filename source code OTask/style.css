@@ -1,0 +1,25 @@
+:root {
+    /* Primary Theme Colors */
+    --color-primary: #4F46E5;     /* Indigo 600 */
+    --color-secondary: #6366F1;   /* Indigo 500 */
+    --color-accent: #F59E0B;      /* Amber 500 */
+  
+    /* Status Colors */
+    --color-success: #10B981;     /* Green 500 */
+    --color-warning: #F97316;     /* Orange 500 */
+    --color-error: #EF4444;       /* Red 500 */
+  
+    /* Backgrounds */
+    --color-bg-main: #F9FAFB;     /* Light gray */
+    --color-bg-card: #FFFFFF;     /* White */
+  
+    /* Text Colors */
+    --color-text-main: #111827;   /* Dark gray */
+    --color-text-muted: #6B7280;  /* Gray 500 */
+  
+    /* Shadow & Radius */
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --radius-lg: 12px;
+    --radius-md: 8px;
+  }
+  
