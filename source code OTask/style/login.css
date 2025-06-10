@@ -1,0 +1,122 @@
+*{
+    margin: 0;
+    box-sizing: border-box;
+}
+body{
+    height: 100vh;
+    position: relative;
+}
+.bg{
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+header{
+    height: 20vh;
+    position: relative;
+}
+header h1{
+    position: absolute;
+    color: #4F46E5;
+    font-size: 3em;
+    top:1em;
+    left:1em;
+}
+
+main{
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
+main .message{
+    font-size: 3.5em;color:#6366F1;
+    width: 30%;
+    overflow:visible;
+}
+main .message h2:nth-child(2){
+    color: #F59E0B;
+}
+
+
+main .form{
+    background-color: white;
+    border-radius: 20px;
+    border: 1px solid #4F46E5;
+    width: 100%;
+    min-width: 200px;
+    max-width: 400px;
+    padding: 2em;
+}
+main form img{
+    width: 30px;
+    height: 40px;
+}
+main .form .title{
+    color: #4F46E5;
+    text-align: center;
+    font-size: 2em;
+}
+
+main .form form label{
+    color: #6B7280;
+}
+main .form form div {
+    position: relative;
+}
+main .form form div input{
+    outline: none;
+    background-color: white;
+    border-radius: 2px;
+    border: 1.5px solid #6366F1;
+    box-shadow: 6px 6px 5px rgba(0, 0,0, 0.1);
+    width:100%;
+    padding: 0.7em 0.7em 0.7em 2.7em;
+    transition: border-color 0.3s ease;
+    margin: 0.5em 0 0.5em 0;
+}
+main .form form div input:focus {
+    border-color: #F59E0B;
+}
+main .form form div img{
+    position: absolute;
+    top:4px;
+    left:6px;
+}
+main .form form .input-password :last-child{
+    position: absolute;
+    left: 88%;
+}
+
+main .form form .foget{
+    color: #F59E0B;
+    cursor: pointer;
+}
+main .form form  button{
+ background-color: #4F46E5;   
+ color: white;
+ width: 100%;
+ border-radius: 5px;
+ border: none;
+ padding: 0.5em 0 0.5em 0;
+ font-size: 1.5em;
+ margin: 0.5em 0 0.5em 0;
+ cursor: pointer;
+}
+main .form form  button:hover{
+    background-color:#2d30f8;
+    box-shadow: 3px 3px 10px #6366F1;
+}
+main .form form .signup {
+    text-align: center;
+}
+main .form form .signup span{
+    color: #F59E0B;
+    cursor:pointer;
+}
