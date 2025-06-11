@@ -37,8 +37,9 @@ CREATE TABLE tasks (
     title VARCHAR(255) NOT NULL,
     deliverable_link TEXT, -- Link for task deliverables/attachments (e.g., Google Drive link)
     description TEXT,
-    start_date DATE,
-    end_date DATE,
+    start_date DATETIME,
+    end_date DATETIME,
+    last_mod DATETIME,
     priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
     status ENUM('in_progress','to_do','pending_review','revision_needed','completed') DEFAULT 'to_do',
     assigned_user_id INT, -- يمكن أن تكون NULL (Can be NULL if not yet assigned or a personal task without specific assignment)
