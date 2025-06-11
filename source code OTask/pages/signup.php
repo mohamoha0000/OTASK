@@ -10,7 +10,7 @@
 <body>
     <img class="bg" src="../imgs/loginbg.png" alt="">
     <header>
-        <h1>OTask</h1>
+        <h1 onclick="window.location.href='../index.html'">OTask</h1>
     </header>
     <main>
         <div class="message">
@@ -45,7 +45,7 @@
                     <img src="../imgs/Eye.png" alt="">
                 </div>
                 <button>Sing Up</button>
-                <h3 class="signup">Do you have an account? <span onclick="window.location.href='login.html'">Login</span></h3>
+                <h3 class="signup">Do you have an account? <span onclick="window.location.href='login.php'">Login</span></h3>
             </form>
         </div>
     </main>

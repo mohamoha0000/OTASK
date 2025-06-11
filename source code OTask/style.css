@@ -265,15 +265,19 @@ body {
 }
 
 .screenshot-placeholder {
-  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-  height: 250px;
+  width: 90%;
+  height: 370px;
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 600; /* Replace with your image path */
+  background-size: cover; /* Makes image cover the entire div */
+  /*object-fit: cover; this in img */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents image repetition */
 }
 
 /* Stats Section */

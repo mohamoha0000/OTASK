@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="../style/style.css">
-    <link rel="stylesheet" href="../style/login.css">
+    <link rel="stylesheet" href="../style/login.css?v=1">
 </head>
 <body>
     <img class="bg" src="../imgs/loginbg.png" alt="">
     <header>
-        <h1>OTask</h1>
+        <h1 onclick="window.location.href='../index.html'">OTask</h1>
     </header>
     <main>
         <div class="message">
@@ -35,7 +35,7 @@
                 </div>
                 <h3 class="foget">Forgot Password?</h3>
                 <button>Log in</button>
-                <h3 class="signup">Don't have an account? <span onclick="window.location.href='signup.html'">Sign Up</span></h3>
+                <h3 class="signup">Don't have an account? <span onclick="window.location.href='signup.php'">Sign Up</span></h3>
             </form>
         </div>
     </main>
