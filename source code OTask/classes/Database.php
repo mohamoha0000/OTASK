@@ -4,7 +4,7 @@ class Database {
 
     public function __construct() {
         $host = "localhost";
-        $dbname = "gestion_budget";
+        $dbname = "otask";
         $username = "root";
         $password = "root";
 
