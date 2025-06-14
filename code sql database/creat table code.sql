@@ -5,6 +5,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('member', 'admin') NOT NULL DEFAULT 'member',
+    remember_token VARCHAR(255) DEFAULT NULL,
     profile_picture TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
