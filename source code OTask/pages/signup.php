@@ -1,13 +1,16 @@
 <?php 
     session_start();
+
     require_once "../classes/Database.php";
     require_once "../classes/User.php";
     require_once "../classes/Validator.php";
     require_once "../classes/Mailer.php";
+
     $db = new Database();
     $pdo = $db->getConnection();
     $user = new User($pdo);
-    $encoded = "eHNtdHBzaWItNWExYzdjZjhkYWFhOTVlODgwOWM1ZTNiY2M2MmYyZTljZDU0MjQ0YTE0ZmJhYzEwZGU5YzEwY2Q1MTY2NzU4YS1FZ2hMUzJWSGE5dnpOSUJ0";
+
+    $encoded = "eHNtdHBzaWItNWExYzdjZjhkYWFhOTVlODgwOWM1ZTNiY2M2MmYyZTljZDU0MjQ0YTE0ZmJhYzEwZGU5YzEwY2Q1MTY2NzU4YS1QNll2VkFVbk5NYjRJa3BU";
     $smtp_password = base64_decode($encoded);
     $mailer = new Mailer(
         "smtp-relay.brevo.com",  
@@ -16,9 +19,11 @@
         $smtp_password,             
         "moham3iof@gmail.com"  
     );
+
     if(isset($_POST["logout"])){
         unset($_SESSION["tempuser"]);
     }
+
     if (isset($_POST['send'])) {
         $time=time()-$_SESSION["tempuser"]["time"];
         if($time>120){
@@ -33,6 +38,7 @@
             $errors["code"]="wait ".(120-$time)." scond";
         }
     }
+    
     if (isset($_POST['singup'])) {
         if(isset($_SESSION["tempuser"])){
             if($_SESSION["tempuser"]["code"]==$_POST["code"]){
