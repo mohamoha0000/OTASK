@@ -9,7 +9,9 @@
     $db = new Database();
     $pdo = $db->getConnection();
     $user = new User($pdo);
-
+    if($user->autoLogin()){
+        header("Location:dashboard.php");
+    }
     $encoded = "eHNtdHBzaWItNWExYzdjZjhkYWFhOTVlODgwOWM1ZTNiY2M2MmYyZTljZDU0MjQ0YTE0ZmJhYzEwZGU5YzEwY2Q1MTY2NzU4YS1QNll2VkFVbk5NYjRJa3BU";
     $smtp_password = base64_decode($encoded);
     $mailer = new Mailer(
@@ -28,7 +30,7 @@
         if(!isset($_SESSION["tempemail"])){
             $email = $_POST['email'];
             if(Validator::isValidEmail($email)&&!$user->not_existe($email)){
-                $_SESSION["tempemail"]["email"]=$_POST["email"];
+                $_SESSION["tempemail"]["email"]=$email;
                 $_SESSION["tempemail"]["code"]=(string)rand(100000,999999);
                 $_SESSION["tempemail"]["time"]=time();
 
@@ -62,7 +64,8 @@
         if(isset($_SESSION["tempemail"])){
             if($_SESSION["tempemail"]["code"]==$_POST["code"]){
                 unset($_SESSION["tempemail"]);
-                header("Location:../index.html");
+                if(isset($_SESSION["tempuser"])){unset($_SESSION["tempuser"]);}
+                header("Location:dashboard.php");
             }else{
                 $errors["code"]="wrong code verifiction";
             }
@@ -76,7 +79,8 @@
             ];
             if (!in_array(false, $valide, true)) {
                 if($user->login($email, $password)){
-                    header("Location:../index.html");
+                    if(isset($_SESSION["tempuser"])){unset($_SESSION["tempuser"]);}
+                    header("Location:dashboard.php");
                 }else{
                     $errors["password"]="password or email incorect";
                 }

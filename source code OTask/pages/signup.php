@@ -9,7 +9,9 @@
     $db = new Database();
     $pdo = $db->getConnection();
     $user = new User($pdo);
-
+    if($user->autoLogin()){
+        header("Location:dashboard.php");
+    }
     $encoded = "eHNtdHBzaWItNWExYzdjZjhkYWFhOTVlODgwOWM1ZTNiY2M2MmYyZTljZDU0MjQ0YTE0ZmJhYzEwZGU5YzEwY2Q1MTY2NzU4YS1QNll2VkFVbk5NYjRJa3BU";
     $smtp_password = base64_decode($encoded);
     $mailer = new Mailer(
@@ -43,8 +45,11 @@
         if(isset($_SESSION["tempuser"])){
             if($_SESSION["tempuser"]["code"]==$_POST["code"]){
                 if($user->create($_SESSION["tempuser"]["name"],$_SESSION["tempuser"]["email"],$_SESSION["tempuser"]["password"])){
-                    unset($_SESSION["tempuser"]);
-                    header("Location:../index.html");
+                    if($user->login($_SESSION["tempuser"]["email"], $_SESSION["tempuser"]["password"])){
+                        if(isset($_SESSION["tempemail"])){unset($_SESSION["tempemail"]);}
+                        unset($_SESSION["tempuser"]);
+                        header("Location:dashboard.php");
+                    }
                 }
                 else{
                     unset($_SESSION["tempuser"]);
