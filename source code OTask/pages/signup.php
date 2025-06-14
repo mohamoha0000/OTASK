@@ -26,7 +26,7 @@
 
     if (isset($_POST['send'])) {
         $time=time()-$_SESSION["tempuser"]["time"];
-        if($time>120){
+        if($time>60){
             $_SESSION["tempuser"]["time"]=time();
             try {
                 $mailer->send($_SESSION["tempuser"]["email"], "OTask code verification email", "code is :{$_SESSION["tempuser"]['code']}");
@@ -35,7 +35,7 @@
                 echo "error in send code verifiction email" . $e->getMessage();
             }
         }else{
-            $errors["code"]="wait ".(120-$time)." scond";
+            $errors["code"]="wait ".(60-$time)." scond";
         }
     }
     
@@ -159,7 +159,7 @@
                         <span></span>
                     </div>
                 <div style="display:flex;justify-content: space-between;"><button style="color:white;width:45%" id="send" name="send">send code</button><button style="color:red;width:45%;" name="logout">logout</button></div>
-                <span style="color:#F97316;" name="time_scondes" id="time_scondes"><?php if(isset($_SESSION["tempuser"]["time"])&& (120-(time()-$_SESSION["tempuser"]["time"]))>0) echo 120-(time()-$_SESSION["tempuser"]["time"]) ?></span>
+                <span style="color:#F97316;" name="time_scondes" id="time_scondes"><?php if(isset($_SESSION["tempuser"]["time"])&& (60-(time()-$_SESSION["tempuser"]["time"]))>0) echo 60-(time()-$_SESSION["tempuser"]["time"]) ?></span>
                 <?php endif; ?>
                 <button name="singup">Sing Up</button>
                 <h3 class="signup">Do you have an account? <span onclick="window.location.href='login.php'">Login</span></h3>
