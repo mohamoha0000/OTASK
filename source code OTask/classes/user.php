@@ -66,5 +66,16 @@ class User {
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
+    public function get_role($id){
+        $stmt = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn();
+    }
+
+    public function getAllUsers() {
+        $stmt = $this->db->prepare("SELECT id, name FROM users ORDER BY name ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
