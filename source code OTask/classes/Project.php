@@ -45,4 +45,15 @@ class Project {
         $stmt->execute([$projectId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getProjectsForUser($userId) {
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT p.id, p.title
+            FROM projects p
+            LEFT JOIN project_members pm ON p.id = pm.project_id
+            WHERE p.supervisor_id = :userId OR pm.user_id = :userId
+            ORDER BY p.title ASC
+        ");
+        $stmt->execute([':userId' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

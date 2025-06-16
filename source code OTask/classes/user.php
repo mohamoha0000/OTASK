@@ -77,5 +77,33 @@ class User {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function emailExists($email, $excludeUserId = null) {
+        $sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        $params = [$email];
+        if ($excludeUserId !== null) {
+            $sql .= " AND id != ?";
+            $params[] = $excludeUserId;
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function update($userId, $field, $newValue) {
+        // Basic validation to ensure only allowed fields are updated
+        $allowedFields = ['name', 'password', 'profile_picture'];
+        if (!in_array($field, $allowedFields)) {
+            return false;
+        }
+
+        // Hash password if the field is 'password'
+        if ($field === 'password') {
+            $newValue = password_hash($newValue, PASSWORD_DEFAULT);
+        }
+
+        $stmt = $this->db->prepare("UPDATE users SET {$field} = ? WHERE id = ?");
+        return $stmt->execute([$newValue, $userId]);
+    }
 }
 ?>

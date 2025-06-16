@@ -76,6 +76,8 @@ window.onload = function() {
             const taskDeliverableLink = this.dataset.taskDeliverableLink;
             const taskAssignedUserId = this.dataset.taskAssignedUserId;
             const userRole = this.dataset.userRole; // Get user role from data attribute
+            const isProjectSupervisorData = this.dataset.isProjectSupervisor === 'true';
+            const isProjectMemberData = this.dataset.isProjectMember === 'true';
             const projectName = this.querySelector('.hidden-project-name')?.dataset.projectName || '';
 
             document.getElementById('editTaskId').value = taskId;
@@ -86,7 +88,7 @@ window.onload = function() {
             document.getElementById('editDueDate').value = taskEndDate;
             document.getElementById('editDeliverableLink').value = taskDeliverableLink;
             document.getElementById('editTaskStatus').value = taskStatus;
-            document.getElementById('editAssignedTo').value = taskAssignedUserId; // Set assigned user
+            // document.getElementById('editAssignedTo').value = taskAssignedUserId; // Removed as "Assigned To" input is removed
 
             const editTaskTitleField = document.getElementById('editTaskTitle');
             const editTaskDescriptionField = document.getElementById('editTaskDescription');
@@ -95,8 +97,8 @@ window.onload = function() {
             const editDueDateField = document.getElementById('editDueDate');
             const editTaskStatusField = document.getElementById('editTaskStatus');
             const editDeliverableLinkField = document.getElementById('editDeliverableLink');
-            const editAssignedToField = document.getElementById('editAssignedTo');
-            const assignedToGroup = document.getElementById('assignedToGroup');
+            // const editAssignedToField = document.getElementById('editAssignedTo'); // Removed as "Assigned To" input is removed
+            // const assignedToGroup = document.getElementById('assignedToGroup'); // Removed as "Assigned To" input is removed
             const editProjectInfoDiv = document.getElementById('editProjectInfo');
             const editProjectNameSpan = document.getElementById('editProjectName');
             const editProjectLink = document.getElementById('editProjectLink');
@@ -109,8 +111,8 @@ window.onload = function() {
             editDueDateField.disabled = false;
             editDeliverableLinkField.disabled = false;
             editTaskStatusField.disabled = false;
-            editAssignedToField.disabled = false;
-            assignedToGroup.style.display = 'block'; // Show by default
+            // editAssignedToField.disabled = false; // Removed as "Assigned To" input is removed
+            // assignedToGroup.style.display = 'block'; // Removed as "Assigned To" input is removed
 
             // Hide project info by default
             editProjectInfoDiv.style.display = 'none';
@@ -124,32 +126,58 @@ window.onload = function() {
             let canMarkCompleted = false;
             let canChangeAssignedUser = false;
 
-            // If it's a personal task or the current user is the assigned user
-            if (!taskProjectId || isAssignedUser) {
-                canEditAllFields = true;
-                canEditStatus = true;
-                canMarkCompleted = true;
-                canChangeAssignedUser = true;
-            }
+            // Determine if it's a project task
+            const isProjectTask = (taskProjectId !== '');
 
-            // If it's a project task
-            if (taskProjectId) {
-                editProjectInfoDiv.style.display = 'block';
-                editProjectNameSpan.textContent = projectName;
-                editProjectLink.href = `projects.php?id=${taskProjectId}`;
+            // Determine if the current user is a non-supervisor project member
+            const isNonSupervisorProjectMember = isProjectTask && isProjectMemberData && !isProjectSupervisorData;
 
-                if (userRole === 'admin' || userRole === 'supervisor') { // Assuming 'supervisor' is the role for project admins
+            // Permissions logic
+            if (isProjectTask) {
+                // Logic for Project Tasks
+                if (isProjectSupervisorData) {
+                    // Project Supervisor: Full permissions
                     canEditAllFields = true;
                     canEditStatus = true;
                     canMarkCompleted = true;
                     canChangeAssignedUser = true;
-                } else if (userRole === 'member') { // Normal project member
+                } else if (isNonSupervisorProjectMember) {
+                    // Non-supervisor Project Member: Restricted permissions
+                    canEditAllFields = false; // Cannot edit all fields
+                    canEditStatus = true; // Can edit status
+                    canChangeAssignedUser = false; // Cannot change assigned user
+                    canMarkCompleted = false; // Cannot mark as completed
+                } else {
+                    // Project Task, but user is not supervisor and not a member
+                    // No permissions to edit
                     canEditAllFields = false;
-                    canEditStatus = true;
-                    canChangeAssignedUser = false;
-                    // A normal member cannot mark a project task as completed
+                    canEditStatus = false;
                     canMarkCompleted = false;
+                    canChangeAssignedUser = false;
                 }
+            } else {
+                // Logic for Personal Tasks (not associated with a project)
+                if (isAssignedUser) {
+                    // Assigned User for personal task: Full permissions
+                    canEditAllFields = true;
+                    canEditStatus = true;
+                    canMarkCompleted = true;
+                    canChangeAssignedUser = true;
+                } else {
+                    // Personal Task, but user is not assigned
+                    // No permissions to edit
+                    canEditAllFields = false;
+                    canEditStatus = false;
+                    canMarkCompleted = false;
+                    canChangeAssignedUser = false;
+                }
+            }
+
+            // If it's a project task, display project info
+            if (isProjectTask) {
+                editProjectInfoDiv.style.display = 'block';
+                editProjectNameSpan.textContent = projectName;
+                editProjectLink.href = `projects.php?id=${taskProjectId}`;
             }
 
             // Apply client-side disabling based on determined permissions
@@ -165,10 +193,10 @@ window.onload = function() {
                 editTaskStatusField.disabled = true;
             }
 
-            if (!canChangeAssignedUser) {
-                editAssignedToField.disabled = true;
-                assignedToGroup.style.display = 'none'; // Hide if not allowed to change
-            }
+            // if (!canChangeAssignedUser) { // Removed as "Assigned To" input is removed
+            //     editAssignedToField.disabled = true;
+            //     assignedToGroup.style.display = 'none'; // Hide if not allowed to change
+            // }
 
             // Disable 'completed' option if not allowed
             const completedOption = editTaskStatusField.querySelector('option[value="completed"]');

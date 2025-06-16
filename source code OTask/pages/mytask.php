@@ -17,9 +17,9 @@
     // Check for user session
     if(!isset($_SESSION["user_id"])){
         header("Location: login.php");
-        exit(); // It's good practice to exit after a header redirect
+        exit();
     }
-    $user_id = $_SESSION["user_id"]; // Get user_id from session
+    $user_id = $_SESSION["user_id"];
 
     // Instantiate all classes
     $user = new User($pdo);
@@ -52,9 +52,6 @@
 
         // Basic validation (you might want to add more robust validation)
         if (!empty($title)) {
-            // Assuming a method exists in Task class to create a task
-            // You might need to add assigned_user_id and created_by_id
-            // For now, let's assume assigned_user_id is the current user and created_by_id is also the current user.
             $taskCreated = $taskManager->createTask(
                 $title,
                 $description,
@@ -67,7 +64,7 @@
 
             if ($taskCreated) {
                 // Redirect to prevent form resubmission and refresh data
-                header("Location: dashboard.php?task_created=success");
+                header("Location: mytask.php?task_created=success");
                 exit();
             } else {
                 // Handle error, e.g., display a message
@@ -75,177 +72,6 @@
             }
         } else {
             $error_message = "Task title cannot be empty.";
-        }
-    }
-
-    // Handle task update
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_task"])) {
-        $taskId = $_POST["task_id"] ?? null;
-        $title = $_POST["task_title"] ?? '';
-        $description = $_POST["task_description"] ?? '';
-        $priority = $_POST["task_priority"] ?? 'medium';
-        $startDate = $_POST["start_date"] ?? null;
-        $endDate = $_POST["end_date"] ?? null;
-        $status = $_POST["task_status"] ?? 'to_do';
-        $deliverableLink = $_POST["deliverable_link"] ?? null;
-        $task = $taskManager->getTaskById($taskId);
-
-        // Fetch assignedUserId AFTER fetching the task
-        $assignedUserId = $task['assigned_user_id'] ?? null; // Use null coalescing to prevent errors if $task is null
-
-        if ($task) {
-            $canEditAll = false;
-            $canChangeStatusToCompleted = false;
-
-            // Check if it's a personal task or user is assigned
-            if ($task['project_id'] === null || $task['assigned_user_id'] == $user_id) {
-                $canEditAll = true;
-                $canChangeStatusToCompleted = true;
-            }
-
-            // Check project permissions if it's a project task
-            if ($task['project_id'] !== null) {
-                $isSupervisor = $projectManager->isUserProjectSupervisor($task['project_id'], $user_id);
-                $isMember = $projectManager->isUserProjectMember($task['project_id'], $user_id);
-
-                if ($isSupervisor) {
-                    $canEditAll = true;
-                    $canChangeStatusToCompleted = true;
-                } elseif ($isMember) {
-                    // Members can only change status, but not to 'completed' unless they are the assigned user
-                    if ($task['assigned_user_id'] == $user_id) {
-                        $canEditAll = false; // Can't edit all fields, only status
-                        $canChangeStatusToCompleted = true; // Can complete their own task
-                    } else {
-                        $canEditAll = false;
-                        $canChangeStatusToCompleted = false;
-                    }
-                }
-            }
-
-            // Apply permissions
-            // Determine if the task is a project task
-            $isProjectTask = ($task['project_id'] !== null);
-
-            // Determine if the current user is the assigned user for this task
-            $isAssignedUser = ($task['assigned_user_id'] == $user_id);
-
-            // Determine if the current user is the supervisor of the project this task belongs to
-            $isProjectSupervisor = false;
-            if ($isProjectTask) {
-                $isProjectSupervisor = $projectManager->isUserProjectSupervisor($task['project_id'], $user_id);
-            }
-
-            // Determine if the current user is a member of the project (but not a supervisor)
-            $isProjectMember = false;
-            if ($isProjectTask) {
-                $isProjectMember = $projectManager->isUserProjectMember($task['project_id'], $user_id);
-            }
-
-            $isNonSupervisorProjectMember = $isProjectTask && $isProjectMember && !$isProjectSupervisor;
-
-            $updateSuccess = false;
-            $canEditAllFields = false;
-            $canEditStatus = false;
-            $canMarkCompleted = false;
-            $canChangeAssignedUser = false; // New permission
-
-            if ($isProjectTask) {
-                // Logic for Project Tasks
-                if ($isProjectSupervisor) {
-                    // Project Supervisor: Full permissions
-                    $canEditAllFields = true;
-                    $canEditStatus = true;
-                    $canMarkCompleted = true;
-                    $canChangeAssignedUser = true;
-                } elseif ($isNonSupervisorProjectMember) {
-                    // Non-supervisor Project Member: Restricted permissions
-                    $canEditAllFields = false; // Cannot edit all fields
-                    $canEditStatus = true; // Can edit status
-                    $canChangeAssignedUser = false; // Cannot change assigned user
-                    $canMarkCompleted = false; // Cannot mark as completed
-                } else {
-                    // Project Task, but user is not supervisor and not a member
-                    $error_message = "You do not have permission to edit this project task.";
-                }
-            } else {
-                // Logic for Personal Tasks (not associated with a project)
-                if ($isAssignedUser) {
-                    // Assigned User for personal task: Full permissions
-                    $canEditAllFields = true;
-                    $canEditStatus = true;
-                    $canMarkCompleted = true;
-                    $canChangeAssignedUser = true;
-                } else {
-                    // Personal Task, but user is not assigned
-                    $error_message = "You do not have permission to edit this personal task.";
-                }
-            }
-
-            // Apply updates based on permissions
-            if ($canEditAllFields) {
-                $updateSuccess = $taskManager->updateTask(
-                    $taskId,
-                    $title,
-                    $description,
-                    $startDate,
-                    $endDate,
-                    $priority,
-                    $status,
-                    $deliverableLink,
-                    $assignedUserId
-                );
-            } elseif ($isNonSupervisorProjectMember) {
-                // Non-supervisor project members can only update status and deliverable_link
-                if ($status == 'completed') {
-                    $error_message = "You do not have permission to mark this task as completed.";
-                    $updateSuccess = false;
-                } else {
-                    $updateSuccess = $taskManager->updateTask(
-                        $taskId,
-                        $task['title'], // Keep original title
-                        $task['description'], // Keep original description
-                        $task['start_date'], // Keep original start date
-                        $task['end_date'], // Keep original end date
-                        $task['priority'], // Keep original priority
-                        $status, // Update status
-                        $deliverableLink, // Update deliverable link
-                        $task['assigned_user_id'] // Keep original assigned user
-                    );
-                }
-            } elseif ($canEditStatus) {
-                // This block handles cases where only status can be changed (e.g., assigned user for personal task)
-                if ($status == 'completed' && !$canMarkCompleted) {
-                    $error_message = "You do not have permission to mark this task as completed.";
-                    $updateSuccess = false;
-                } else {
-                    $updateSuccess = $taskManager->updateTask(
-                        $taskId,
-                        $task['title'],
-                        $task['description'],
-                        $task['start_date'],
-                        $task['end_date'],
-                        $task['priority'],
-                        $status,
-                        $deliverableLink,
-                        $task['assigned_user_id']
-                    );
-                }
-            } else {
-                $error_message = "You do not have permission to edit this task.";
-                $updateSuccess = false;
-            }
-
-            if ($updateSuccess) {
-                header("Location: dashboard.php?task_updated=success");
-                exit();
-            } else {
-                if (!isset($error_message)) {
-                    $error_message = "Failed to update task.";
-                }
-            }
-        } else {
-            $error_message = "Task not found.";
         }
     }
 
@@ -262,24 +88,8 @@
         return strtoupper($initials);
     }
     
-    // 1. Get notification count using the Notification class
+    // Get notification count using the Notification class
     $unread_notifications = $notificationManager->getUnreadCount($user_id);
-
-    // 2. Get task stats using the Task class
-    $active_tasks = $taskManager->getTaskCountForUser($user_id, 'active');
-    $completed_tasks = $taskManager->getTaskCountForUser($user_id, 'completed');
-    $overdue_tasks = $taskManager->getTaskCountForUser($user_id, 'overdue');
-
-    // Calculate completion rate
-    $total_tasks = $active_tasks + $completed_tasks;
-    $completion_rate = ($total_tasks > 0) ? round(($completed_tasks / $total_tasks) * 100) : 0;
-
-    // 3. Get project stats using the Project class
-    $projects_joined = $projectManager->getProjectsJoinedCount($user_id);
-    $active_projects = $projectManager->getActiveProjectsCount($user_id);
-
-    // 4. Get recent tasks using the Task class
-    $recent_tasks = $taskManager->getRecentTasksForUser($user_id, 5);
 
     // Helper to map priority/status to CSS classes and labels
     function priorityClass($prio) {
@@ -316,22 +126,186 @@
             default:                return ucfirst(str_replace('_', ' ', $status));
         }
     }
+
+    // Pagination variables
+    $tasks_per_page = 5; // Number of tasks to display per page
+    $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $offset = ($current_page - 1) * $tasks_per_page;
+
+    // Fetch filtered tasks
+    $search_query = $_GET['search'] ?? '';
+    $status_filter = $_GET['status'] ?? '';
+    $project_filter = $_GET['project'] ?? '';
+    $days_filter = $_GET['days'] ?? '';
+    $start_date_filter = $_GET['start_date'] ?? '';
+    $end_date_filter = $_GET['end_date'] ?? '';
+
+    $all_tasks = $taskManager->getAllTasksForUser(
+        $user_id,
+        $search_query,
+        $status_filter,
+        $project_filter,
+        $days_filter,
+        $start_date_filter,
+        $end_date_filter,
+        $tasks_per_page,
+        $offset
+    );
+    $total_tasks_count = $taskManager->getTaskCountForUserFiltered(
+        $user_id,
+        $search_query,
+        $status_filter,
+        $project_filter,
+        $days_filter,
+        $start_date_filter,
+        $end_date_filter
+    );
+    $total_pages = ceil($total_tasks_count / $tasks_per_page);
+
+    // Fetch all projects for the project filter dropdown
+    $user_projects = $projectManager->getProjectsForUser($user_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dashboard</title>
+    <title>My Tasks</title>
     <link rel="stylesheet" href="../style/dashboard.css?v=4">
+    <style>
+        /* Additional styles for mytask.php specific elements */
+        .my-tasks-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .search-filter-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-bar {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-bar button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .filter-options select,
+        .filter-options input[type="date"] {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            background-color: #fff;
+            cursor: pointer;
+            outline: none;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%20197.1L159.1%2069.2c-3.7-3.7-9.7-3.7-13.4%200L5.4%20197.1c-3.7%203.7-3.7%209.7%200%2013.4s9.7%203.7%2013.4%200l130.3-130.3c.4-.4.9-.6%201.4-.6s1%20.2%201.4%20.6l130.3%20130.3c3.7%203.7%209.7%203.7%2013.4%200S290.7%20200.8%20287%20197.1z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px auto;
+        }
+
+        .filter-options input[type="date"] {
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M19%204h-1V2h-2v2H8V2H6v2H5c-1.11%200-1.99.9-1.99%202L3%2020c0%201.1.89%202%202%202h14c1.1%200%202-.9%202-2V6c0-1.1-.9-2-2-2zm0%2016H5V9h14v11zM5%207V6h14v1H5z%22%2F%3E%3C%2Fsvg%3E');
+            background-position: right 10px center;
+            background-size: 18px auto;
+        }
+
+        .filter-options .reset-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .filter-options .reset-btn:hover {
+            background: #e74c3c;
+        }
+
+        .tasks-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination a, .pagination span {
+            text-decoration: none;
+            color: #667eea;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .pagination .current-page {
+            background-color: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <header class="header fade-in">
         <div class="nav container">
             <a href="dashboard.php" class="logo">OTask</a>
             <ul class="nav-links">
-                <li><a href="dashboard.php" class="active">Dashboard</a></li>
-                <li><a href="mytask.php">My Tasks</a></li>
+                <li><a href="dashboard.php">Dashboard</a></li>
+                <li><a href="mytask.php" class="active">My Tasks</a></li>
                 <li><a href="projects.php">Projects</a></li>
             </ul>
             <div class="user-menu">
@@ -346,11 +320,9 @@
                 <div class="user-avatar" onclick="window.location.href='profile.php'">
                     <?php if (!empty($user_info["profile_picture"])): ?>
                         <?php
-                            // Check if the profile picture is a base64 string or a URL
                             if (strpos($user_info["profile_picture"], 'data:image') === 0) {
                                 $image_src = $user_info["profile_picture"];
                             } else {
-                                // Assuming it's a URL if not base64
                                 $image_src = htmlspecialchars($user_info["profile_picture"]);
                             }
                         ?>
@@ -363,57 +335,67 @@
         </div>
     </header>
     <main>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="color: #fff; font-size: 28px;">Welcome back, <?= htmlspecialchars($user_name) ?>!</h1>
-            <a id="newTaskBtn" class="btn btn-primary">
-                <!-- plus icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/>
-                </svg>
-                New Task
-            </a>
-        </div>
+        <div class="my-tasks-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="color: #333; font-size: 28px;">My Task</h1>
+                <a id="newTaskBtn" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/>
+                    </svg>
+                    New Task
+                </a>
+            </div>
 
-        <!-- Stats Cards -->
-        <div class="dashboard-grid">
-            <div class="stats-card">
-                <div class="stats-number" style="color:#667EEA;"><?= $active_tasks ?></div>
-                <div class="stats-label">Active Tasks</div>
+            <div class="search-filter-section">
+                <form action="mytask.php" method="GET">
+                    <div class="search-bar">
+                        <input type="text" name="search" placeholder="Search tasks..." value="<?= htmlspecialchars($search_query) ?>">
+                        <button type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="filter-options">
+                        <select name="status">
+                            <option value="">select status</option>
+                            <option value="to_do" <?= $status_filter == 'to_do' ? 'selected' : '' ?>>To Do</option>
+                            <option value="in_progress" <?= $status_filter == 'in_progress' ? 'selected' : '' ?>>In Progress</option>
+                            <option value="pending_review" <?= $status_filter == 'pending_review' ? 'selected' : '' ?>>Pending Review</option>
+                            <option value="revision_needed" <?= $status_filter == 'revision_needed' ? 'selected' : '' ?>>Revision Needed</option>
+                            <option value="completed" <?= $status_filter == 'completed' ? 'selected' : '' ?>>Completed</option>
+                        </select>
+                        <select name="project">
+                            <option value="">select project</option>
+                            <?php foreach ($user_projects as $project): ?>
+                                <option value="<?= htmlspecialchars($project['id']) ?>" <?= $project_filter == $project['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($project['title']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select name="days">
+                            <option value="">select days</option>
+                            <option value="today" <?= $days_filter == 'today' ? 'selected' : '' ?>>Today</option>
+                            <option value="next_7_days" <?= $days_filter == 'next_7_days' ? 'selected' : '' ?>>Next 7 Days</option>
+                            <option value="overdue" <?= $days_filter == 'overdue' ? 'selected' : '' ?>>Overdue</option>
+                        </select>
+                        <label for="start_date">date between:</label>
+                        <input type="date" id="start_date" name="start_date" value="<?= htmlspecialchars($start_date_filter) ?>">
+                        <input type="date" id="end_date" name="end_date" value="<?= htmlspecialchars($end_date_filter) ?>">
+                        <button type="button" class="reset-btn" onclick="window.location.href='mytask.php'">Reset</button>
+                    </div>
+                </form>
             </div>
-            <div class="stats-card">
-                <div class="stats-number" style="color:#2ECC71;"><?= $completed_tasks ?></div>
-                <div class="stats-label">Completed Tasks</div>
-            </div>
-            <div class="stats-card">
-                <div class="stats-number" style="color:#F39C12;"><?= $active_projects ?></div>
-                <div class="stats-label">Active Projects</div>
-            </div>
-            <div class="stats-card">
-                <div class="stats-number" style="color:#E74C3C;"><?= $overdue_tasks ?></div>
-                <div class="stats-label">Overdue Tasks</div>
-            </div>
-            <div class="stats-card">
-                <div class="stats-number" style="color:#9B59B6;"><?= $projects_joined ?></div>
-                <div class="stats-label">Projects Joined</div>
-            </div>
-            <div class="stats-card">
-                <div class="stats-number" style="color:#F39C12;"><?= $completion_rate ?>%</div>
-                <div class="stats-label">Completion Rate</div>
-            </div>
-        </div>
 
-        <!-- Recent Tasks -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Recent Tasks</div>
-            </div>
+            <div class="tasks-count"><?= $total_tasks_count ?> Tasks</div>
+
             <div class="task-list">
-                <?php if (empty($recent_tasks)): ?>
-                    <p style="color: #666;">No recent tasks found.</p>
+                <?php if (empty($all_tasks)): ?>
+                    <p style="color: #666;">No tasks found matching your criteria.</p>
                 <?php else: ?>
-                    <?php foreach ($recent_tasks as $task):
+                    <?php foreach ($all_tasks as $task):
                         $due = $task['end_date'];
-                        $due_str = $due ? date('M d, Y H:i', strtotime($due)) : 'No due date';
+                        $due_str = $due ? date('M d, Y', strtotime($due)) : 'No due date';
                         $prio = $task['priority'];
                         $stat = $task['status'];
                         
@@ -467,7 +449,6 @@
     }
 ?>
 <span class="hidden-project-name" data-project-name="<?= $project_name ?>"></span>
-                                <!-- pencil/edit icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M3 17.25V21h3.75l11-11.03-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                 </svg>
@@ -477,8 +458,16 @@
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
-        </div>
 
+            <div class="pagination">
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <a href="mytask.php?page=<?= $i ?>&search=<?= urlencode($search_query) ?>&status=<?= urlencode($status_filter) ?>&project=<?= urlencode($project_filter) ?>&days=<?= urlencode($days_filter) ?>&start_date=<?= urlencode($start_date_filter) ?>&end_date=<?= urlencode($end_date_filter) ?>"
+                       class="<?= $i == $current_page ? 'current-page' : '' ?>">
+                        <?= $i ?>
+                    </a>
+                <?php endfor; ?>
+            </div>
+        </div>
     </main>
 
     <!-- Footer -->
@@ -486,14 +475,14 @@
         &copy; <?= date('Y') ?> OTask. All rights reserved.
     </footer>
 
-    <!-- New Task Modal -->
+    <!-- New Task Modal (copied from dashboard.php) -->
     <div id="newTaskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Create New Task</h2>
                 <span class="close-button">&times;</span>
             </div>
-            <form action="dashboard.php" method="POST">
+            <form action="mytask.php" method="POST">
                 <div class="form-group">
                     <label for="taskTitle">Task Title</label>
                     <input type="text" id="taskTitle" name="task_title" required>
@@ -531,14 +520,14 @@
     </script>
     <script src="../scripts/script.js?v=4"></script>
 
-    <!-- Edit Task Modal -->
+    <!-- Edit Task Modal (copied from dashboard.php) -->
     <div id="editTaskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Update Task</h2>
                 <span class="close-button edit-close-button">&times;</span>
             </div>
-            <form action="dashboard.php" method="POST">
+            <form action="mytask.php" method="POST">
                 <input type="hidden" id="editTaskId" name="task_id">
                 <div class="form-group" id="editProjectInfo">
                     <label>Project Name: <span id="editProjectName"></span></label>

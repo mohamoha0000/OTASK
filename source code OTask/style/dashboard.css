@@ -111,7 +111,7 @@ body {
 }
 
 main{
-    background-color: white;
+    /* background-color: white; Removed to allow body background to show */
     max-width: 1200px;
     margin: 2em auto;
     padding: 20px;
@@ -476,6 +476,7 @@ main{
 
 .form-group input[type="text"],
 .form-group input[type="date"],
+.form-group input[type="datetime-local"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -489,6 +490,7 @@ main{
 
 .form-group input[type="text"]:focus,
 .form-group input[type="date"]:focus,
+.form-group input[type="datetime-local"]:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     border-color: #667eea;
@@ -554,6 +556,7 @@ main{
 
 .form-group input[type="text"],
 .form-group input[type="date"],
+.form-group input[type="datetime-local"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -567,6 +570,7 @@ main{
 
 .form-group input[type="text"]:focus,
 .form-group input[type="date"]:focus,
+.form-group input[type="datetime-local"]:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     border-color: #667eea;
