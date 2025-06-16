@@ -56,6 +56,12 @@ class Task {
         return $stmt->execute([$title, $description, $startDate, $endDate, $priority, $status, $deliverableLink, $assignedUserId, $taskId]);
     }
 
+    public function deleteTask($taskId) {
+        $sql = "DELETE FROM tasks WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$taskId]);
+    }
+
     public function getTaskById($taskId) {
         $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE id = ?");
         $stmt->execute([$taskId]);

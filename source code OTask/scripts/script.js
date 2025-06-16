@@ -78,6 +78,7 @@ window.onload = function() {
             const userRole = this.dataset.userRole; // Get user role from data attribute
             const isProjectSupervisorData = this.dataset.isProjectSupervisor === 'true';
             const isProjectMemberData = this.dataset.isProjectMember === 'true';
+            const isPersonalTask = this.dataset.isPersonalTask === 'true'; // New: Get personal task status
             const projectName = this.querySelector('.hidden-project-name')?.dataset.projectName || '';
 
             document.getElementById('editTaskId').value = taskId;
@@ -102,6 +103,9 @@ window.onload = function() {
             const editProjectInfoDiv = document.getElementById('editProjectInfo');
             const editProjectNameSpan = document.getElementById('editProjectName');
             const editProjectLink = document.getElementById('editProjectLink');
+            const deleteTaskBtn = document.getElementById('deleteTaskBtn'); // New: Get delete button
+            const deleteTaskForm = document.getElementById('deleteTaskForm'); // New: Get delete form
+            const deleteTaskIdInput = document.getElementById('deleteTaskId'); // New: Get hidden task ID for delete form
 
             // Reset fields to enabled first
             editTaskTitleField.disabled = false;
@@ -205,6 +209,28 @@ window.onload = function() {
             }
 
             editTaskModal.classList.add('show');
+
+            // Show/hide delete button based on task type and permissions
+            console.log('Task ID:', taskId);
+            console.log('isPersonalTask:', isPersonalTask);
+            console.log('isAssignedUser:', isAssignedUser);
+
+            if (deleteTaskBtn) { // Ensure the button element exists
+                if (isPersonalTask && isAssignedUser) {
+                    deleteTaskBtn.style.display = 'inline-block'; // Show the button
+                    deleteTaskBtn.onclick = function() {
+                        console.log('Delete button clicked for task ID:', taskId);
+                        if (confirm('Are you sure you want to delete this personal task?')) {
+                            deleteTaskIdInput.value = taskId;
+                            deleteTaskForm.submit();
+                        }
+                    };
+                } else {
+                    deleteTaskBtn.style.display = 'none'; // Hide the button
+                }
+            } else {
+                console.error('Delete task button not found!');
+            }
         });
     });
 

@@ -1,7 +1,11 @@
 <?php
 class Validator {
+    public static function isNotEmpty($value) {
+        return !empty($value);
+    }
+
     public static function isValidUsername($name) {
-        return !empty($name);
+        return self::isNotEmpty($name);
     }
 
     public static function isValidPassword($password) {
