@@ -203,46 +203,9 @@
 
                 $isNonSupervisorProjectMember = $isProjectTask && $isProjectMember && !$isProjectSupervisor;
 
-                $updateSuccess = false;
-                $canEditAllFields = false;
-                $canEditStatus = false;
-                $canMarkCompleted = false;
-                $canChangeAssignedUser = false; // New permission
-
-                if ($isProjectTask) {
-                    // Logic for Project Tasks
-                    if ($isProjectSupervisor) {
-                        // Project Supervisor: Full permissions
-                        $canEditAllFields = true;
-                        $canEditStatus = true;
-                        $canMarkCompleted = true;
-                        $canChangeAssignedUser = true;
-                    } elseif ($isNonSupervisorProjectMember) {
-                        // Non-supervisor Project Member: Restricted permissions
-                        $canEditAllFields = false; // Cannot edit all fields
-                        $canEditStatus = true; // Can edit status
-                        $canChangeAssignedUser = false; // Cannot change assigned user
-                        $canMarkCompleted = false; // Cannot mark as completed
-                    } else {
-                        // Project Task, but user is not supervisor and not a member
-                        $error_message = "You do not have permission to edit this project task.";
-                    }
-                } else {
-                    // Logic for Personal Tasks (not associated with a project)
-                    if ($isAssignedUser) {
-                        // Assigned User for personal task: Full permissions
-                        $canEditAllFields = true;
-                        $canEditStatus = true;
-                        $canMarkCompleted = true;
-                        $canChangeAssignedUser = true;
-                    } else {
-                        // Personal Task, but user is not assigned
-                        $error_message = "You do not have permission to edit this personal task.";
-                    }
-                }
-
                 // Apply updates based on permissions
-                if ($canEditAllFields) {
+                if ($isProjectSupervisor) {
+                    // Project Supervisor: Full permissions
                     $updateSuccess = $taskManager->updateTask(
                         $taskId,
                         $title,
@@ -254,8 +217,8 @@
                         $deliverableLink,
                         $assignedUserId
                     );
-                } elseif ($isNonSupervisorProjectMember) {
-                    // Non-supervisor project members can only update status and deliverable_link
+                } elseif ($isProjectTask && $isProjectMember && !$isProjectSupervisor) {
+                    // Non-supervisor Project Member: Can only update status and deliverable_link, but not to 'completed'
                     if ($status == 'completed') {
                         $error_message = "You do not have permission to mark this task as completed.";
                         $updateSuccess = false;
@@ -272,24 +235,19 @@
                             $task['assigned_user_id'] // Keep original assigned user
                         );
                     }
-                } elseif ($canEditStatus) {
-                    // This block handles cases where only status can be changed (e.g., assigned user for personal task)
-                    if ($status == 'completed' && !$canMarkCompleted) {
-                        $error_message = "You do not have permission to mark this task as completed.";
-                        $updateSuccess = false;
-                    } else {
-                        $updateSuccess = $taskManager->updateTask(
-                            $taskId,
-                            $task['title'],
-                            $task['description'],
-                            $task['start_date'],
-                            $task['end_date'],
-                            $task['priority'],
-                            $status,
-                            $deliverableLink,
-                            $task['assigned_user_id']
-                        );
-                    }
+                } elseif (!$isProjectTask && $isAssignedUser) {
+                    // Personal Task, assigned user: Full permissions
+                    $updateSuccess = $taskManager->updateTask(
+                        $taskId,
+                        $title,
+                        $description,
+                        $startDate,
+                        $endDate,
+                        $priority,
+                        $status,
+                        $deliverableLink,
+                        $assignedUserId
+                    );
                 } else {
                     $error_message = "You do not have permission to edit this task.";
                     $updateSuccess = false;
@@ -683,6 +641,10 @@
                         $isProjectSupervisorForTask = false;
                         if ($task['project_id'] !== null) {
                             $isProjectSupervisorForTask = $projectManager->isUserProjectSupervisor($task['project_id'], $user_id);
+                        }
+                        $isProjectMemberForTask = false; // Initialize to false
+                        if ($task['project_id'] !== null) {
+                            $isProjectMemberForTask = $projectManager->isUserProjectMember($task['project_id'], $user_id);
                         }
                     ?>
                     <div class="task-item">

@@ -291,6 +291,12 @@ main{
 .status-review { background: #fff3e0; color: #ff9800; }
 .status-completed { background: #e8f5e8; color: #4caf50; }
 
+.task-assigned-member {
+    font-size: 13px;
+    color: #888;
+    margin-top: 5px;
+}
+
 /* Quick Actions - optional, not used in this example */
 .quick-actions {
     display: grid;

@@ -409,6 +409,7 @@
                             $member_count = $projectManager->getProjectMemberCount($project['id']);
                             $task_count = $taskManager->getTaskCountForProject($project['id']);
                         ?>
+<a href="view_project.php?project_id=<?= htmlspecialchars($project['id']) ?>" style="text-decoration: none; color: inherit;">
                         <div class="project-item">
                             <div class="project-title"><?= htmlspecialchars($project['title']) ?></div>
                             <div class="project-description"><?= nl2br(htmlspecialchars($project['description'])) ?></div>
@@ -427,6 +428,7 @@
                                 </div>
                             </div>
                         </div>
+</a>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
@@ -453,6 +455,7 @@
                             $member_count = $projectManager->getProjectMemberCount($project['id']);
                             $task_count = $taskManager->getTaskCountForProject($project['id']);
                         ?>
+<a href="view_project.php?project_id=<?= htmlspecialchars($project['id']) ?>" style="text-decoration: none; color: inherit;">
                         <div class="project-item joined">
                             <div class="project-title"><?= htmlspecialchars($project['title']) ?></div>
                             <div class="project-description"><?= nl2br(htmlspecialchars($project['description'])) ?></div>
@@ -471,6 +474,7 @@
                                 </div>
                             </div>
                         </div>
+</a>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>

@@ -177,4 +177,21 @@ class Project {
         $stmt->execute($params);
         return (int)$stmt->fetchColumn();
     }
+
+    public function getProjectMembers($projectId) {
+        $stmt = $this->pdo->prepare("
+            SELECT u.id, u.name
+            FROM users u
+            JOIN project_members pm ON u.id = pm.user_id
+            WHERE pm.project_id = :projectId
+            UNION
+            SELECT u.id, u.name
+            FROM users u
+            JOIN projects p ON u.id = p.supervisor_id
+            WHERE p.id = :projectId
+            ORDER BY name ASC
+        ");
+        $stmt->execute([':projectId' => $projectId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

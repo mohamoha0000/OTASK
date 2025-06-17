@@ -67,6 +67,7 @@ class Task {
         $stmt->execute([$taskId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
     public function getAllTasksForUser($userId, $searchQuery = '', $statusFilter = '', $projectFilter = '', $daysFilter = '', $startDateFilter = '', $endDateFilter = '', $limit = 10, $offset = 0) {
         $sql = "SELECT id, title, description, start_date, end_date, priority, status, project_id, assigned_user_id, deliverable_link
                 FROM tasks
@@ -188,5 +189,54 @@ class Task {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':projectId' => $projectId]);
         return (int)$stmt->fetchColumn();
+    }
+
+    public function getTasksByProjectId($projectId) {
+        $sql = "SELECT * FROM tasks WHERE project_id = :projectId ORDER BY end_date ASC, priority DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':projectId' => $projectId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getTasksByProjectIdFiltered($projectId, $statusFilter = '', $assignedUserFilter = '', $daysFilter = '') {
+        $sql = "SELECT t.*, u.name as assigned_user_name
+                FROM tasks t
+                JOIN users u ON t.assigned_user_id = u.id
+                WHERE t.project_id = :projectId";
+        $params = [':projectId' => $projectId];
+
+        if (!empty($statusFilter)) {
+            $sql .= " AND t.status = :statusFilter";
+            $params[':statusFilter'] = $statusFilter;
+        }
+        if (!empty($assignedUserFilter)) {
+            $sql .= " AND t.assigned_user_id = :assignedUserFilter";
+            $params[':assignedUserFilter'] = $assignedUserFilter;
+        }
+        if (!empty($daysFilter)) {
+            switch ($daysFilter) {
+                case 'today':
+                    $sql .= " AND DATE(t.end_date) = CURDATE()";
+                    break;
+                case 'tomorrow':
+                    $sql .= " AND DATE(t.end_date) = DATE_ADD(CURDATE(), INTERVAL 1 DAY)";
+                    break;
+                case 'next_7_days':
+                    $sql .= " AND t.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+                    break;
+                case 'overdue':
+                    $sql .= " AND t.status != 'completed' AND t.end_date IS NOT NULL AND t.end_date < NOW()";
+                    break;
+            }
+        }
+
+        $sql .= " ORDER BY t.end_date ASC, t.priority DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
