@@ -33,7 +33,7 @@ class Task {
 
     public function getRecentTasksForUser($userId, $limit = 5) {
         $stmt = $this->pdo->prepare("
-            SELECT id, title, description, start_date, end_date, priority, status, project_id, assigned_user_id
+            SELECT id, title, description, start_date, end_date, priority, status, project_id, assigned_user_id, deliverable_link
             FROM tasks
             WHERE assigned_user_id = ?
             ORDER BY last_mod DESC, created_at DESC
@@ -68,7 +68,7 @@ class Task {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     public function getAllTasksForUser($userId, $searchQuery = '', $statusFilter = '', $projectFilter = '', $daysFilter = '', $startDateFilter = '', $endDateFilter = '', $limit = 10, $offset = 0) {
-        $sql = "SELECT id, title, description, start_date, end_date, priority, status, project_id, assigned_user_id
+        $sql = "SELECT id, title, description, start_date, end_date, priority, status, project_id, assigned_user_id, deliverable_link
                 FROM tasks
                 WHERE assigned_user_id = :userId";
         $params = [':userId' => $userId];
@@ -90,6 +90,9 @@ class Task {
             switch ($daysFilter) {
                 case 'today':
                     $sql .= " AND DATE(end_date) = CURDATE()";
+                    break;
+                case 'tomorrow':
+                    $sql .= " AND DATE(end_date) = DATE_ADD(CURDATE(), INTERVAL 1 DAY)";
                     break;
                 case 'next_7_days':
                     $sql .= " AND end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
@@ -152,6 +155,9 @@ class Task {
             switch ($daysFilter) {
                 case 'today':
                     $sql .= " AND DATE(end_date) = CURDATE()";
+                    break;
+                case 'tomorrow':
+                    $sql .= " AND DATE(end_date) = DATE_ADD(CURDATE(), INTERVAL 1 DAY)";
                     break;
                 case 'next_7_days':
                     $sql .= " AND end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)";

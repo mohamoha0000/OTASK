@@ -101,15 +101,52 @@
 
         $errors = [];
 
-        if (!Validator::isNotEmpty($title)) {
-            $errors[] = "Task title cannot be empty.";
+        // Fetch the existing task to determine permissions and original values
+        $task = $taskManager->getTaskById($taskId);
+
+        if (!$task) {
+            $errors[] = "Task not found.";
+        } else {
+            // Determine permissions for the current user on this specific task
+            $isProjectTask = ($task['project_id'] !== null);
+            $isAssignedUser = ($task['assigned_user_id'] == $user_id);
+            $isProjectSupervisor = false;
+            if ($isProjectTask) {
+                $isProjectSupervisor = $projectManager->isUserProjectSupervisor($task['project_id'], $user_id);
+            }
+            $isProjectMember = false;
+            if ($isProjectTask) {
+                $isProjectMember = $projectManager->isUserProjectMember($task['project_id'], $user_id);
+            }
+            $isNonSupervisorProjectMember = $isProjectTask && $isProjectMember && !$isProjectSupervisor;
+
+            $canEditAllFields = false;
+            if ($isProjectTask) {
+                if ($isProjectSupervisor) {
+                    $canEditAllFields = true;
+                }
+            } else { // Personal Task
+                if ($isAssignedUser) {
+                    $canEditAllFields = true;
+                }
+            }
+
+            // Apply validation based on permissions
+            if ($canEditAllFields) {
+                if (!Validator::isNotEmpty($title)) {
+                    $errors[] = "Task title cannot be empty.";
+                }
+                if (!Validator::isNotEmpty($startDate)) {
+                    $errors[] = "Start Date cannot be empty.";
+                }
+                if (!Validator::isNotEmpty($endDate)) {
+                    $errors[] = "Due Date cannot be empty.";
+                }
+            }
+            // For non-supervisor project members, title, start_date, end_date are not required for update
+            // They can only update status and deliverable_link
         }
-        if (!Validator::isNotEmpty($startDate)) {
-            $errors[] = "Start Date cannot be empty.";
-        }
-        if (!Validator::isNotEmpty($endDate)) {
-            $errors[] = "Due Date cannot be empty.";
-        }
+
         if (!Validator::isNotEmpty($taskId)) {
             $errors[] = "Task ID is missing.";
         }
@@ -348,7 +385,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>dashboard</title>
-    <link rel="stylesheet" href="../style/dashboard.css?v=4">
+    <link rel="stylesheet" href="../style/dashboard.css?v=5">
 </head>
 <body>
     <header class="header fade-in">
@@ -559,7 +596,7 @@
     <script>
         const currentUserId = <?= json_encode($user_id) ?>;
     </script>
-    <script src="../scripts/script.js?v=4"></script>
+    <script src="../scripts/script.js?v=7"></script>
 
     <!-- Edit Task Modal -->
     <div id="editTaskModal" class="modal">
@@ -598,7 +635,10 @@
                 </div>
                 <div class="form-group">
                     <label for="editDeliverableLink">Deliverable Link</label>
-                    <input type="text" id="editDeliverableLink" name="deliverable_link" placeholder="e.g., Google Drive link">
+                    <div class="deliverable-link-input-group">
+                        <input type="text" id="editDeliverableLink" name="deliverable_link" placeholder="e.g., Google Drive link">
+                        <img src="../imgs/Copy.png" alt="Copy Link" class="copy-link-icon" id="copyDeliverableLink">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="editTaskPriority">Priority</label>

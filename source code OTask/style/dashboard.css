@@ -554,6 +554,27 @@ main{
     color: #555;
 }
 
+.deliverable-link-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between input and icon */
+}
+
+.deliverable-link-input-group input[type="text"] {
+    flex-grow: 1; /* Allow input to take available space */
+}
+
+.copy-link-icon {
+    width: 24px; /* Adjust size as needed */
+    height: 30px; /* Adjust size as needed */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.copy-link-icon:hover {
+    transform: scale(1.1);
+}
+
 .form-group input[type="text"],
 .form-group input[type="date"],
 .form-group input[type="datetime-local"],

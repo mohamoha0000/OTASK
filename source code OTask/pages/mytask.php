@@ -101,15 +101,52 @@
 
         $errors = [];
 
-        if (!Validator::isNotEmpty($title)) {
-            $errors[] = "Task title cannot be empty.";
+        // Fetch the existing task to determine permissions and original values
+        $task = $taskManager->getTaskById($taskId);
+
+        if (!$task) {
+            $errors[] = "Task not found.";
+        } else {
+            // Determine permissions for the current user on this specific task
+            $isProjectTask = ($task['project_id'] !== null);
+            $isAssignedUser = ($task['assigned_user_id'] == $user_id);
+            $isProjectSupervisor = false;
+            if ($isProjectTask) {
+                $isProjectSupervisor = $projectManager->isUserProjectSupervisor($task['project_id'], $user_id);
+            }
+            $isProjectMember = false;
+            if ($isProjectTask) {
+                $isProjectMember = $projectManager->isUserProjectMember($task['project_id'], $user_id);
+            }
+            $isNonSupervisorProjectMember = $isProjectTask && $isProjectMember && !$isProjectSupervisor;
+
+            $canEditAllFields = false;
+            if ($isProjectTask) {
+                if ($isProjectSupervisor) {
+                    $canEditAllFields = true;
+                }
+            } else { // Personal Task
+                if ($isAssignedUser) {
+                    $canEditAllFields = true;
+                }
+            }
+
+            // Apply validation based on permissions
+            if ($canEditAllFields) {
+                if (!Validator::isNotEmpty($title)) {
+                    $errors[] = "Task title cannot be empty.";
+                }
+                if (!Validator::isNotEmpty($startDate)) {
+                    $errors[] = "Start Date cannot be empty.";
+                }
+                if (!Validator::isNotEmpty($endDate)) {
+                    $errors[] = "Due Date cannot be empty.";
+                }
+            }
+            // For non-supervisor project members, title, start_date, end_date are not required for update
+            // They can only update status and deliverable_link
         }
-        if (!Validator::isNotEmpty($startDate)) {
-            $errors[] = "Start Date cannot be empty.";
-        }
-        if (!Validator::isNotEmpty($endDate)) {
-            $errors[] = "Due Date cannot be empty.";
-        }
+
         if (!Validator::isNotEmpty($taskId)) {
             $errors[] = "Task ID is missing.";
         }
@@ -399,7 +436,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Tasks</title>
-    <link rel="stylesheet" href="../style/dashboard.css?v=4">
+    <link rel="stylesheet" href="../style/dashboard.css?v=5">
     <style>
         /* Additional styles for mytask.php specific elements */
         .my-tasks-container {
@@ -474,9 +511,19 @@
         }
 
         .filter-options input[type="date"] {
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M19%204h-1V2h-2v2H8V2H6v2H5c-1.11%200-1.99.9-1.99%202L3%2020c0%201.1.89%202%202%202h14c1.1%200%202-.9%202-2V6c0-1.1-.9-2-2-2zm0%2016H5V9h14v11zM5%207V6h14v1H5z%22%2F%3E%3C%2Fsvg%3E');
+            background-image: url('../imgs/Calendar.png'); /* Use the provided image path */
+            background-repeat: no-repeat;
             background-position: right 10px center;
-            background-size: 18px auto;
+            background-size: 24px auto; /* Increased size */
+            padding-right: 35px; /* Add padding to make space for the larger icon */
+            /* Removed appearance: none to allow native date picker to function */
+        }
+
+        /* Ensure the native calendar picker indicator is visible and clickable */
+        .filter-options input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0; /* Make the default indicator transparent */
+            width: 35px; /* Ensure it has a clickable area */
+            cursor: pointer;
         }
 
         .filter-options .reset-btn {
@@ -609,6 +656,7 @@
                         <select name="days">
                             <option value="">select days</option>
                             <option value="today" <?= $days_filter == 'today' ? 'selected' : '' ?>>Today</option>
+                            <option value="tomorrow" <?= $days_filter == 'tomorrow' ? 'selected' : '' ?>>Tomorrow</option>
                             <option value="next_7_days" <?= $days_filter == 'next_7_days' ? 'selected' : '' ?>>Next 7 Days</option>
                             <option value="overdue" <?= $days_filter == 'overdue' ? 'selected' : '' ?>>Overdue</option>
                         </select>
@@ -752,7 +800,7 @@
     <script>
         const currentUserId = <?= json_encode($user_id) ?>;
     </script>
-    <script src="../scripts/script.js?v=5"></script>
+    <script src="../scripts/script.js?v=6"></script>
 
     <!-- Edit Task Modal (copied from dashboard.php) -->
     <div id="editTaskModal" class="modal">
@@ -791,7 +839,10 @@
                 </div>
                 <div class="form-group">
                     <label for="editDeliverableLink">Deliverable Link</label>
-                    <input type="text" id="editDeliverableLink" name="deliverable_link" placeholder="e.g., Google Drive link">
+                    <div class="deliverable-link-input-group">
+                        <input type="text" id="editDeliverableLink" name="deliverable_link" placeholder="e.g., Google Drive link">
+                        <img src="../imgs/Copy.png" alt="Copy Link" class="copy-link-icon" id="copyDeliverableLink">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="editTaskPriority">Priority</label>
@@ -812,20 +863,11 @@
                 <div class="form-actions">
                     <button type="submit" name="update_task" class="btn btn-primary">Update Task</button>
                     <button type="button" class="btn btn-secondary edit-close-button">Cancel</button>
-                    <button type="button" id="deleteTaskBtn" class="btn btn-danger" style="background-color: #dc3545; margin-left: 10px;">Delete Task</button>
                 </div>
-            </form>
-            <!-- Separate form for task deletion -->
-            <form id="deleteTaskForm" action="mytask.php" method="POST" style="display: none;">
-                <input type="hidden" name="task_id" id="deleteTaskId">
-                <input type="hidden" name="delete_task" value="1">
             </form>
         </div>
     </div>
 </body>
 </html>
-            </form>
-        </div>
-    </div>
 </body>
 </html>

@@ -245,4 +245,22 @@ window.onload = function() {
             editTaskModal.classList.remove('show');
         }
     });
+
+    // Copy deliverable link functionality
+    const copyDeliverableLinkBtn = document.getElementById('copyDeliverableLink');
+    if (copyDeliverableLinkBtn) {
+        copyDeliverableLinkBtn.addEventListener('click', function() {
+            const deliverableLinkInput = document.getElementById('editDeliverableLink');
+            if (deliverableLinkInput && deliverableLinkInput.value) {
+                navigator.clipboard.writeText(deliverableLinkInput.value).then(() => {
+                    alert('Deliverable link copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy link. Please copy manually.');
+                });
+            } else {
+                alert('No deliverable link to copy.');
+            }
+        });
+    }
 };
