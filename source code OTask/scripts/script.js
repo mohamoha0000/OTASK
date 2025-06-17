@@ -58,6 +58,31 @@ window.onload = function() {
         }
     });
 
+    // New Project Modal functionality (for projects.php)
+    const newProjectBtn = document.getElementById('newProjectBtn');
+    const newProjectModal = document.getElementById('newProjectModal');
+    // Re-use closeButtons for newProjectModal as they share the same class
+    const newProjectCloseButtons = newProjectModal ? newProjectModal.querySelectorAll('.close-button') : [];
+
+    if (newProjectBtn && newProjectModal) {
+        newProjectBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            newProjectModal.classList.add('show');
+        });
+    }
+
+    newProjectCloseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            newProjectModal.classList.remove('show');
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == newProjectModal) {
+            newProjectModal.classList.remove('show');
+        }
+    });
+
     const editTaskButtons = document.querySelectorAll('.edit-task-btn');
     const editTaskModal = document.getElementById('editTaskModal');
     const editCloseButtons = document.querySelectorAll('.edit-close-button');

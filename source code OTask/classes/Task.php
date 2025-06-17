@@ -183,4 +183,10 @@ class Task {
         $stmt->execute();
         return (int)$stmt->fetchColumn();
     }
+    public function getTaskCountForProject($projectId) {
+        $sql = "SELECT COUNT(*) FROM tasks WHERE project_id = :projectId";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':projectId' => $projectId]);
+        return (int)$stmt->fetchColumn();
+    }
 }
