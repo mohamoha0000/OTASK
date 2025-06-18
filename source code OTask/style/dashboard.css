@@ -70,6 +70,19 @@ body {
     gap: 20px;
 }
 
+/* Hamburger menu icon */
+.menu-toggle {
+    display: none; /* Hidden by default on larger screens */
+    cursor: pointer;
+    font-size: 24px;
+    color: #333;
+}
+
+.hamburger-icon {
+    width: 24px;
+    height: 24px;
+}
+
 .notification-icon {
     position: relative;
     cursor: pointer;
@@ -155,18 +168,157 @@ main{
     justify-content: space-between;
     align-items: center;
 }
-.project-name{
+.project-title-section {
     display: flex;
-    justify-content: center;
     align-items: center;
 }
+.project-desktop-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between icons and buttons */
+}
+
 .project-icon {
     width: 40px; /* Adjust size as needed */
     height: 40px; /* Adjust size as needed */
     cursor: pointer;
 }
-.chat-icon{
-    width: 50px;
+
+/* Project Menu Toggle (Hamburger) */
+.project-menu-toggle {
+    display: none; /* Hidden by default on larger screens */
+    align-items: center;
+    cursor: pointer;
+    margin-left: 10px; /* Space between project title and hamburger */
+}
+
+.project-menu-toggle .hamburger-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Project Menu Modal specific styles */
+.project-menu-options-icons {
+    display: flex;
+    justify-content: center; /* Center icons in the modal */
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.project-menu-options-icons .project-icon {
+    width: 35px; /* Slightly larger icons for the modal */
+    height: 35px;
+}
+
+/* Responsive rules for project header elements */
+@media (max-width: 768px) {
+    .project-desktop-actions {
+        display: none; /* Hide desktop actions on small screens */
+    }
+    .project-menu-toggle {
+        display: flex; /* Show project menu toggle on small screens */
+    }
+    .project-header {
+        justify-content: space-between; /* Ensure space between title and hamburger */
+    }
+}
+
+@media (min-width: 769px) {
+    .project-desktop-actions {
+        display: flex; /* Show desktop actions on large screens */
+    }
+    .project-menu-toggle {
+        display: none; /* Hide project menu toggle on large screens */
+    }
+}
+
+#projectMenuModal .modal-content {
+    max-width: 400px; /* Adjust width as needed for the smaller modal */
+    text-align: center;
+}
+
+#projectMenuModal .modal-header h2 {
+    font-size: 20px;
+    color: #333;
+    width: 100%; /* Make the title take full width */
+    text-align: left; /* Align text to the left */
+}
+
+#projectMenuModal .modal-header {
+    border-bottom: none; /* Remove border from header */
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+#projectMenuModal .close-button {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    color: #764ba2; /* Purple color for the close icon */
+}
+
+#projectMenuModal .close-button:hover {
+    color: #667eea;
+}
+
+.project-menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between sections */
+    margin-top: 10px;
+}
+
+.project-menu-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px; /* Space before the divider */
+}
+
+.project-menu-title {
+    font-weight: bold;
+    color: #f39c12; /* Orange color from the image */
+    font-size: 16px;
+}
+
+.project-menu-icons {
+    display: flex;
+    gap: 10px;
+}
+
+.project-menu-icons .project-icon {
+    width: 30px; /* Smaller icons for the modal */
+    height: 30px;
+}
+
+.project-menu-divider {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 0; /* Remove default margin */
+}
+
+.project-menu-buttons {
+    display: flex;
+    flex-direction: column; /* Default to column for smaller screens */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.project-menu-buttons .btn {
+    width: 100%; /* Full width for buttons on small screens */
+}
+
+@media (min-width: 480px) { /* Adjust breakpoint for side-by-side buttons */
+    .project-menu-buttons {
+        flex-direction: row; /* Side-by-side for slightly larger mobile screens */
+        justify-content: space-around; /* Distribute space */
+    }
+    .project-menu-buttons .btn {
+        width: auto; /* Auto width for buttons when side-by-side */
+        flex-grow: 1; /* Allow buttons to grow and fill space */
+    }
 }
 
 
@@ -393,8 +545,64 @@ main{
 
 /* Responsive */
 @media (max-width: 768px) {
+    .nav {
+        flex-wrap: nowrap; /* Prevent wrapping */
+        justify-content: space-between; /* Space out items */
+        position: relative; /* For absolute positioning of menu-toggle */
+    }
+
+    .logo {
+        margin-left: 50px; /* Adjust to make space for hamburger */
+        margin-bottom: 0;
+    }
+
     .nav-links {
-        display: none;
+        display: flex; /* Always flex for positioning */
+        flex-direction: column;
+        width: 250px; /* Width of the sidebar menu */
+        height: 100vh; /* Full height */
+        position: fixed; /* Fixed position for sidebar */
+        top: 0;
+        left: -250px; /* Initially hidden off-screen to the left */
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding-top: 80px; /* Space for header content */
+        box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+        transition: left 0.3s ease-in-out; /* Smooth slide-in transition */
+        z-index: 999; /* Ensure it's below modal but above other content */
+    }
+
+    .nav-links.active {
+        left: 0; /* Slide in when active */
+    }
+
+    .nav-links li {
+        margin: 0; /* Remove vertical margin */
+    }
+
+    .nav-links a {
+        display: block; /* Make links fill the width */
+        padding: 15px 20px; /* Adjust padding for menu items */
+        text-align: left; /* Align text to the left */
+        border-bottom: 1px solid #eee; /* Separator for menu items */
+    }
+
+    .nav-links li:last-child a {
+        border-bottom: none;
+    }
+
+    .user-menu {
+        width: auto; /* Reset width */
+        margin-top: 0; /* Reset margin */
+    }
+
+    .menu-toggle {
+        display: block; /* Show hamburger on small screens */
+        position: absolute;
+        left: 20px;
+        top: 50%; /* Center vertically */
+        transform: translateY(-50%); /* Adjust for exact centering */
+        z-index: 1000; /* Ensure it's above nav-links when closed */
     }
 
     .dashboard-grid {

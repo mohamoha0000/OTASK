@@ -34,6 +34,15 @@ function showTextEffect(select,speed) {
 
 
 window.onload = function() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (mobileMenu && navLinks) {
+        mobileMenu.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+        });
+    }
+
     const newTaskButton = document.getElementById('newTaskBtn');
     const newTaskModal = document.getElementById('newTaskModal');
     const closeButtons = document.querySelectorAll('.close-button');
@@ -250,18 +259,23 @@ window.onload = function() {
     });
 
     // Settings Modal functionality
-    const settingsIcon = document.querySelector('.settings-icon');
+    const settingsIconHeader = document.querySelector('.settings-icon-header');
+    const settingsIconModal = document.querySelector('.settings-icon-modal');
     const settingsModal = document.getElementById('settingsModal');
-    const settingsCloseButtons = document.querySelectorAll('.settings-close-button'); // Use querySelectorAll for consistency
-    const exitProjectBtn = document.getElementById('exitProjectBtn');
+    const settingsCloseButtons = document.querySelectorAll('.settings-close-button');
 
-    if (settingsIcon && settingsModal) {
-        settingsIcon.addEventListener('click', function() {
-            settingsModal.classList.add('show');
-        });
+    function openSettingsModal() {
+        settingsModal.classList.add('show');
     }
 
-    settingsCloseButtons.forEach(button => { // Iterate through all close buttons
+    if (settingsIconHeader) {
+        settingsIconHeader.addEventListener('click', openSettingsModal);
+    }
+    if (settingsIconModal) {
+        settingsIconModal.addEventListener('click', openSettingsModal);
+    }
+
+    settingsCloseButtons.forEach(button => {
         button.addEventListener('click', function() {
             settingsModal.classList.remove('show');
         });
@@ -273,10 +287,79 @@ window.onload = function() {
         }
     });
 
-    // Invite Member Modal functionality
-    const newMemberBtn = document.getElementById('newMemberBtn');
+    // Project Menu Modal functionality
+    const projectMenuToggle = document.getElementById('project-menu-toggle');
+    const projectMenuModal = document.getElementById('projectMenuModal');
+    const projectMenuCloseButtons = document.querySelectorAll('.project-menu-close-button');
+    const newTaskBtnModal = document.getElementById('newTaskBtnModal');
+    const newMemberBtnModal = document.getElementById('newMemberBtnModal');
+
+    if (projectMenuToggle && projectMenuModal) {
+        projectMenuToggle.addEventListener('click', function() {
+            projectMenuModal.classList.add('show');
+        });
+    }
+
+    projectMenuCloseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            projectMenuModal.classList.remove('show');
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == projectMenuModal) {
+            projectMenuModal.classList.remove('show');
+        }
+    });
+
+    // Handle buttons inside Project Menu Modal
+    if (newTaskBtnModal) {
+        newTaskBtnModal.addEventListener('click', function(event) {
+            event.preventDefault();
+            projectMenuModal.classList.remove('show'); // Close project menu modal
+            newTaskModal.classList.add('show'); // Open new task modal
+        });
+    }
+
+    if (newMemberBtnModal) {
+        newMemberBtnModal.addEventListener('click', function(event) {
+            event.preventDefault();
+            projectMenuModal.classList.remove('show'); // Close project menu modal
+            inviteMemberModal.classList.add('show'); // Open invite member modal
+        });
+    }
+
+    // Chat Icon functionality
+    const chatIconHeader = document.querySelector('.chat-icon-header');
+    const chatIconModal = document.querySelector('.chat-icon-modal');
+
+    function handleChatClick() {
+        alert('Chat functionality will be implemented here!'); // Placeholder for chat
+        if (projectMenuModal) {
+            projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
+        }
+    }
+
+    if (chatIconHeader) {
+        chatIconHeader.addEventListener('click', handleChatClick);
+    }
+    if (chatIconModal) {
+        chatIconModal.addEventListener('click', handleChatClick);
+    }
+
+    // Invite Member Modal functionality (original)
     const inviteMemberModal = document.getElementById('inviteMemberModal');
     const inviteMemberCloseButtons = document.querySelectorAll('.invite-member-close-button');
+    const newTaskBtn = document.getElementById('newTaskBtn'); // Get the original New Task button
+    const newMemberBtn = document.getElementById('newMemberBtn'); // Get the original New Member button
+
+    // Event listeners for original New Task and New Member buttons (for large screens)
+    if (newTaskBtn && newTaskModal) {
+        newTaskBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            newTaskModal.classList.add('show');
+        });
+    }
 
     if (newMemberBtn && inviteMemberModal) {
         newMemberBtn.addEventListener('click', function(event) {

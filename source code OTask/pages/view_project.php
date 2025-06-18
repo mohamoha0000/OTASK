@@ -712,6 +712,9 @@
     <header class="header fade-in">
         <div class="nav container">
             <a href="dashboard.php" class="logo">OTask</a>
+            <div class="menu-toggle" id="mobile-menu">
+                <img src="../imgs/Menu.png" alt="Menu" class="hamburger-icon">
+            </div>
             <ul class="nav-links">
                 <li><a href="dashboard.php">Dashboard</a></li>
                 <li><a href="mytask.php">My Tasks</a></li>
@@ -747,15 +750,18 @@
         <div class="project-view-container">
             <?php if ($project): ?>
                 <div class="project-header">
-                    <div class="project-name">
+                    <div class="project-title-section">
                         <h1>Project: <?= htmlspecialchars($project['title']) ?> </h1>
-                        <img src="../imgs/setting.png" alt="Settings" class="project-icon settings-icon">
+                        <div class="project-menu-toggle" id="project-menu-toggle">
+                            <img src="../imgs/Menu.png" alt="Menu" class="hamburger-icon">
+                        </div>
                     </div>
-                    <div class="project-name">
-                        <img src="../imgs/Chat Bubble.png" alt="Chat" class="project-icon chat-icon">
+                    <div class="project-desktop-actions">
+                        <img src="../imgs/setting.png" alt="Settings" class="project-icon settings-icon-header">
+                        <img src="../imgs/Chat Bubble.png" alt="Chat" class="project-icon chat-icon-header">
                         <?php if ($is_supervisor): ?>
-                        <button type="button" class="btn btn-primary" id="newTaskBtn" style="margin-left: 10px;">+ New Task</button>
-                        <button type="button" class="btn btn-primary" id="newMemberBtn" style="margin-left: 10px;">+ New Member</button>
+                        <button type="button" class="btn btn-primary" id="newTaskBtn">+ New Task</button>
+                        <button type="button" class="btn btn-primary" id="newMemberBtn">+ New Member</button>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -999,6 +1005,32 @@
                     <button type="submit" name="send_invite" class="btn btn-primary">Send Invite</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Project Menu Modal -->
+    <div id="projectMenuModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>menu project</h2>
+                <span class="close-button project-menu-close-button">&times;</span>
+            </div>
+            <div class="project-menu-content">
+                <div class="project-menu-header-row">
+                    <span class="project-menu-title">Project: <?= htmlspecialchars($project['title']) ?></span>
+                    <div class="project-menu-icons">
+                        <img src="../imgs/setting.png" alt="Settings" class="project-icon settings-icon-modal">
+                        <img src="../imgs/Chat Bubble.png" alt="Chat" class="project-icon chat-icon-modal">
+                    </div>
+                </div>
+                <hr class="project-menu-divider">
+                <?php if ($is_supervisor): ?>
+                <div class="project-menu-buttons">
+                    <button type="button" class="btn btn-primary" id="newTaskBtnModal">+ New Task</button>
+                    <button type="button" class="btn btn-primary" id="newMemberBtnModal">+ New Member</button>
+                </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 

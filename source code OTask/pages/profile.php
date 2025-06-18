@@ -51,10 +51,13 @@
     <header class="header fade-in">
         <div class="nav container">
             <a href="dashboard.php" class="logo">OTask</a>
+            <div class="menu-toggle" id="mobile-menu">
+                <img src="../imgs/Menu.png" alt="Menu" class="hamburger-icon">
+            </div>
             <ul class="nav-links">
                 <li><a href="dashboard.php">Dashboard</a></li>
-                <li><a href="#">My Tasks</a></li>
-                <li><a href="#">Projects</a></li>
+                <li><a href="mytask.php">My Tasks</a></li>
+                <li><a href="projects.php">Projects</a></li>
             </ul>
             <div class="user-menu">
                 <div class="notification-icon" onclick="window.location.href='notifications.php'">

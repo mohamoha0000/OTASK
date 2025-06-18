@@ -80,7 +80,8 @@ foreach ($project_tasks as $proj_task) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Tasks Supervision - <?php echo htmlspecialchars($project_info['title']); ?></title>
-    <link rel="stylesheet" href="../style/style.css"> <!-- Assuming a common style.css -->
+    <link rel="stylesheet" href="../style/style.css">
+    <link rel="stylesheet" href="../style/dashboard.css?v=5">
     <style>
         :root {
             /* Primary Theme Colors */
@@ -117,13 +118,9 @@ foreach ($project_tasks as $proj_task) {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--color-bg-main);
             color: var(--color-text-main);
-            padding: 2rem;
+            padding: 0; /* Remove padding from body */
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
 
         h1 {
             color: var(--color-primary);
@@ -137,13 +134,15 @@ foreach ($project_tasks as $proj_task) {
             background: var(--color-bg-card);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-soft);
-            overflow: hidden;
+            overflow-x: auto;
             margin-top: 2rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            /* Ensure table content doesn't wrap unnecessarily */
+            white-space: nowrap;
         }
 
         thead {
@@ -329,6 +328,10 @@ foreach ($project_tasks as $proj_task) {
             .task-description {
                 max-width: none;
             }
+
+            .table-container table {
+                min-width: 700px; /* Adjust this value as needed for content to overflow */
+            }
         }
 
         /* Animation for table load */
@@ -449,8 +452,67 @@ foreach ($project_tasks as $proj_task) {
     </style>
 </head>
 <body>
+    <header class="header fade-in">
+        <div class="nav container">
+            <a href="dashboard.php" class="logo">OTask</a>
+            <div class="menu-toggle" id="mobile-menu">
+                <img src="../imgs/Menu.png" alt="Menu" class="hamburger-icon">
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.php">Dashboard</a></li>
+                <li><a href="mytask.php">My Tasks</a></li>
+                <li><a href="projects.php" class="active">Projects</a></li>
+            </ul>
+            <div class="user-menu">
+                <div class="notification-icon" onclick="window.location.href='notifications.php'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M12 2C10.343 2 9 3.343 9 5v1.07C6.163 7.555 4 10.388 4 14v4l-1 1v1h18v-1l-1-1v-4c0-3.612-2.163-6.445-5-7.93V5c0-1.657-1.343-3-3-3zm1 19h-2a2 2 0 004 0h-2z"/>
+                    </svg>
+                    <?php
+                        require_once "../classes/Notification.php";
+                        $notificationManager = new Notification($pdo);
+                        $unread_notifications = $notificationManager->getUnreadCount($current_user_id);
+                    ?>
+                    <?php if ($unread_notifications > 0): ?>
+                    <div class="notification-badge"><?= $unread_notifications ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="user-avatar" onclick="window.location.href='profile.php'">
+                    <?php
+                        $user_info = $user->get_info($current_user_id);
+                        $user_name = isset($user_info["name"]) ? $user_info["name"] : "User";
+                        function getInitials($name) {
+                            $parts = preg_split("/\s+/", trim($name));
+                            $initials = "";
+                            foreach ($parts as $p) {
+                                if (strlen($p) > 0) {
+                                    $initials .= mb_substr($p, 0, 1);
+                                }
+                                if (mb_strlen($initials) >= 2) break;
+                            }
+                            return strtoupper($initials);
+                        }
+                    ?>
+                    <?php if (!empty($user_info["profile_picture"])): ?>
+                        <?php
+                            if (strpos($user_info["profile_picture"], 'data:image') === 0) {
+                                $image_src = $user_info["profile_picture"];
+                            } else {
+                                $image_src = htmlspecialchars($user_info["profile_picture"]);
+                            }
+                        ?>
+                        <img src="<?= $image_src ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                    <?php else: ?>
+                        <?= htmlspecialchars(getInitials($user_name)) ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main style="max-width: 1200px; margin: 2em auto; padding: 20px; border-radius: 15px;">
     <div class="container">
-        <h1>Project Tasks Supervision</h1>
+        <h1>Project Tasks Supervision - <?php echo htmlspecialchars($project_info['title']); ?></h1>
+        <a href="view_project.php?project_id=<?php echo htmlspecialchars($project_id); ?>" class="btn btn-info" style="margin-bottom: 20px;">Back to Project Overview</a>
 
         <div class="tabs">
             <button class="tab-button active" onclick="openTab(event, 'Members')">Members</button>
@@ -624,5 +686,7 @@ foreach ($project_tasks as $proj_task) {
             }
         }
     </script>
+    </main>
+    <script src="../scripts/script.js?v=1"></script>
 </body>
 </html>
