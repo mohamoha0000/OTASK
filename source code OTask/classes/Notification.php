@@ -18,21 +18,29 @@ class Notification {
         return (int)$stmt->fetchColumn();
     }
 
-    public function createNotification($userId, $type, $title, $message, $senderId = null) {
+    public function createNotification($userId, $type, $title, $message, $relatedId = null, $senderId = null) {
         $stmt = $this->pdo->prepare("
-            INSERT INTO notifications (user_id, sender_id, type, title, message)
-            VALUES (:user_id, :sender_id, :type, :title, :message)
+            INSERT INTO notifications (user_id, sender_id, type, title, message, related_id)
+            VALUES (:user_id, :sender_id, :type, :title, :message, :related_id)
         ");
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
         $stmt->bindParam(':sender_id', $senderId, PDO::PARAM_INT);
         $stmt->bindParam(':type', $type);
         $stmt->bindParam(':title', $title);
         $stmt->bindParam(':message', $message);
+        $stmt->bindParam(':related_id', $relatedId, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
+    public function getNotificationById($notificationId) {
+        $stmt = $this->pdo->prepare("SELECT * FROM notifications WHERE id = :id");
+        $stmt->bindParam(':id', $notificationId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function getNotificationsForUser($userId, $typeFilter = '', $statusFilter = '', $daysFilter = '', $limit = 10, $offset = 0) {
-        $sql = "SELECT id, user_id, sender_id, type, title, message, is_read, created_at FROM notifications WHERE user_id = :user_id";
+        $sql = "SELECT id, user_id, sender_id, type, title, message, is_read, created_at, related_id FROM notifications WHERE user_id = :user_id";
         $params = [':user_id' => $userId];
 
         if (!empty($typeFilter)) {

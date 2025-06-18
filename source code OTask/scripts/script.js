@@ -252,11 +252,8 @@ window.onload = function() {
     // Settings Modal functionality
     const settingsIcon = document.querySelector('.settings-icon');
     const settingsModal = document.getElementById('settingsModal');
-    const settingsCloseButton = document.querySelector('.settings-close-button');
+    const settingsCloseButtons = document.querySelectorAll('.settings-close-button'); // Use querySelectorAll for consistency
     const exitProjectBtn = document.getElementById('exitProjectBtn');
-
-    console.log('Settings Icon Element:', settingsIcon); // Debugging line
-    console.log('Settings Modal Element:', settingsModal); // Debugging line
 
     if (settingsIcon && settingsModal) {
         settingsIcon.addEventListener('click', function() {
@@ -264,16 +261,39 @@ window.onload = function() {
         });
     }
 
-    if (settingsCloseButton) {
-        settingsCloseButton.addEventListener('click', function() {
+    settingsCloseButtons.forEach(button => { // Iterate through all close buttons
+        button.addEventListener('click', function() {
             settingsModal.classList.remove('show');
         });
-    }
-
+    });
 
     window.addEventListener('click', function(event) {
         if (event.target == settingsModal) {
             settingsModal.classList.remove('show');
+        }
+    });
+
+    // Invite Member Modal functionality
+    const newMemberBtn = document.getElementById('newMemberBtn');
+    const inviteMemberModal = document.getElementById('inviteMemberModal');
+    const inviteMemberCloseButtons = document.querySelectorAll('.invite-member-close-button');
+
+    if (newMemberBtn && inviteMemberModal) {
+        newMemberBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            inviteMemberModal.classList.add('show');
+        });
+    }
+
+    inviteMemberCloseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            inviteMemberModal.classList.remove('show');
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == inviteMemberModal) {
+            inviteMemberModal.classList.remove('show');
         }
     });
 

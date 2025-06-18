@@ -67,11 +67,13 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL, -- The recipient of the notification
     sender_id INT,        -- NEW: The user who originated/sent the notification (NULL for system-generated notifications like deadlines)
-    type ENUM('invite_to_project', 'task_update', 'task_deadline', 'admin_message') NOT NULL,
+    type ENUM('invite_to_project', 'invite_accepted', 'invite_declined', 'task_update', 'task_deadline', 'admin_message') NOT NULL,
     title VARCHAR(255) NOT NULL, -- Added title column
     message TEXT NOT NULL, -- Renamed content to message for clarity
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    related_id INT,        -- NEW: Stores ID of related entity (e.g., project_id for invites)
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL -- If sender user is deleted, set this to NULL
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL, -- If sender user is deleted, set this to NULL
+    FOREIGN KEY (related_id) REFERENCES projects(id) ON DELETE SET NULL -- If related project is deleted, set this to NULL
 );

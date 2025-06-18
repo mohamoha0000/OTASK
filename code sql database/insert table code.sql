@@ -62,10 +62,3 @@ INSERT INTO chat_messages (project_id, sender_id, message, sent_at) VALUES
 (2, 3, 'API connection ready.', NOW()),
 (3, 3, 'Logs are clean.', NOW()),
 (3, 2, 'Final UI updates done.', NOW());
-
-INSERT INTO notifications (user_id, sender_id, type, content, is_read, created_at) VALUES
-(1, 2, 'admin_message', 'Jane sent a message on Admin Project.', 0, NOW()),
-(2, 1, 'admin_message', 'You have been assigned to Project 1.', 0, NOW()),
-(3, 1, 'admin_message', 'You have been assigned a new task.', 0, NOW()),
-(2, 3, 'admin_message', 'John replied to your message.', 1, NOW()),
-(3, 2, 'admin_message', 'Jane mentioned you in a chat.', 0, NOW());

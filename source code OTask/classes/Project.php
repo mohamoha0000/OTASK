@@ -203,4 +203,15 @@ class Project {
         }
         return false; // User is not a member or is the supervisor
     }
+
+    public function addProjectMember($projectId, $userId) {
+        // Check if the user is already a member
+        if ($this->isUserProjectMember($projectId, $userId)) {
+            return false; // Already a member
+        }
+
+        // Add the user as a member
+        $stmt = $this->pdo->prepare("INSERT INTO project_members (project_id, user_id) VALUES (?, ?)");
+        return $stmt->execute([$projectId, $userId]);
+    }
 }

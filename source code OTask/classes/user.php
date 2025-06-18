@@ -78,6 +78,12 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getUserByEmail($email) {
+        $stmt = $this->db->prepare("SELECT id, name, email, role FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function emailExists($email, $excludeUserId = null) {
         $sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         $params = [$email];

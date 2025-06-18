@@ -237,6 +237,60 @@
         }
     }
 
+    // Handle invite member
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["send_invite"])) {
+        $invited_email = $_POST["member_email"] ?? '';
+        $project_id_invite = $_POST["project_id"] ?? 0;
+
+        $errors = [];
+
+        if (!Validator::isValidEmail($invited_email)) {
+            $errors[] = "Invalid email format.";
+        }
+
+        if ($project_id_invite <= 0) {
+            $errors[] = "Invalid project ID.";
+        }
+
+        // Check if the current user is the supervisor of this project
+        if (!$projectManager->isUserProjectSupervisor($project_id_invite, $user_id)) {
+            $errors[] = "You do not have permission to invite members to this project.";
+        }
+
+        if (empty($errors)) {
+            $invited_user_info = $user->getUserByEmail($invited_email);
+
+            if (!$invited_user_info) {
+                $errors[] = "User with this email does not exist.";
+            } else {
+                $invited_user_id = $invited_user_info['id'];
+
+                // Check if the invited user is already a member of the project
+                if ($projectManager->isUserProjectMember($project_id_invite, $invited_user_id)) {
+                    $errors[] = "This user is already a member of the project.";
+                } else {
+                    // Send invitation notification
+                    $notification_type = 'invite_to_project';
+                    $notification_message = "You have been invited to join the project: " . htmlspecialchars($project['title']);
+                    $notification_link = "notifications.php"; // Link to notifications page where they can accept/decline
+
+                    if ($notificationManager->createNotification($invited_user_id, $notification_type, $notification_message, $notification_link, $project_id_invite, $user_id)) {
+                        header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&invite_sent=success");
+                        exit();
+                    } else {
+                        $errors[] = "Failed to send invitation.";
+                    }
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['form_errors'] = $errors;
+            header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&invite_failed=true");
+            exit();
+        }
+    }
+
     // Helper to map priority/status to CSS classes and labels (copied from mytask.php)
     function priorityClass($prio) {
         switch ($prio) {
@@ -279,7 +333,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project View: <?= $project ? htmlspecialchars($project['title']) : 'N/A' ?></title>
-    <link rel="stylesheet" href="../style/dashboard.css?v=1">
+    <link rel="stylesheet" href="../style/dashboard.css?v=2">
     <style>
         /* Inherit general styles from dashboard.css */
         .project-view-container {
@@ -700,8 +754,8 @@
                     <div class="project-name">
                         <img src="../imgs/Chat Bubble.png" alt="Chat" class="project-icon chat-icon">
                         <?php if ($is_supervisor): ?>
-                        <button type="button" class="btn btn-primary" style="margin-left: 10px;">+ New Task</button>
-                        <button type="button" class="btn btn-primary" style="margin-left: 10px;">+ New Member</button>
+                        <button type="button" class="btn btn-primary" id="newTaskBtn" style="margin-left: 10px;">+ New Task</button>
+                        <button type="button" class="btn btn-primary" id="newMemberBtn" style="margin-left: 10px;">+ New Member</button>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -928,6 +982,38 @@
         </div>
     </div>
 
+    <!-- Invite Member Modal -->
+    <div id="inviteMemberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>invite member:</h2>
+                <span class="close-button invite-member-close-button">&times;</span>
+            </div>
+            <form action="view_project.php?project_id=<?= htmlspecialchars($project_id) ?>" method="POST">
+                <input type="hidden" name="project_id" value="<?= htmlspecialchars($project_id) ?>">
+                <div class="form-group">
+                    <label for="memberEmail">Email of member</label>
+                    <input type="email" id="memberEmail" name="member_email" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" name="send_invite" class="btn btn-primary">Send Invite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <?php if (isset($_GET['invite_failed']) && isset($_SESSION['form_errors'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const errors = <?= json_encode($_SESSION['form_errors']) ?>;
+            if (errors.length > 0) {
+                alert("Failed to invite member:\n" + errors.join("\n"));
+            }
+            <?php unset($_SESSION['form_errors']); // Clear the errors after displaying ?>
+        });
+    </script>
+    <?php endif; ?>
+
     <footer style="text-align:center; padding:20px 0; color:#fff;">
         &copy; <?= date('Y') ?> OTask. All rights reserved.
     </footer>
@@ -960,6 +1046,6 @@
             });
         });
     </script>
-    <script src="../scripts/script.js?v=1"></script>
+    <script src="../scripts/script.js?v=3"></script>
 </body>
 </html>

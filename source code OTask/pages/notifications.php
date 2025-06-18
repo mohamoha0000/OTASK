@@ -58,9 +58,28 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["mark_read"])) {
         $notificationId = $_POST["notification_id"] ?? null;
         if ($notificationId) {
-            $notificationManager->markNotificationAsRead($notificationId, $user_id);
-            header("Location: notifications.php");
-            exit();
+            $notification = $notificationManager->getNotificationById($notificationId);
+            if ($notification && $notification['user_id'] == $user_id) {
+                // If it's a project invite and not already read, auto-join the project
+                if ($notification['type'] == 'invite_to_project' && !$notification['is_read']) {
+                    $projectId = $notification['related_id'];
+                    if ($projectManager->addProjectMember($projectId, $user_id)) {
+                        // Optionally, send a notification back to the inviter that the invite was accepted
+                        $inviterId = $notification['sender_id'];
+                        $projectTitle = $projectManager->getProjectById($projectId)['title'] ?? 'a project';
+                        $inviter_notification_message = htmlspecialchars($user_name) . " has accepted your invitation to join " . htmlspecialchars($projectTitle) . " by marking the notification as read.";
+                        $notificationManager->createNotification($inviterId, 'invite_accepted', 'Project Invitation Accepted', $inviter_notification_message, $user_id);
+                        $success_message = "Successfully joined the project!";
+                    } else {
+                        $error_message = "Failed to auto-join project. You might already be a member.";
+                    }
+                }
+                $notificationManager->markNotificationAsRead($notificationId, $user_id);
+                header("Location: notifications.php" . (isset($success_message) ? "?join_success=true" : "") . (isset($error_message) ? "?join_error=true" : ""));
+                exit();
+            } else {
+                $error_message = "Invalid notification or permission denied.";
+            }
         }
     }
 
@@ -71,6 +90,52 @@
             $notificationManager->deleteNotification($notificationId, $user_id);
             header("Location: notifications.php");
             exit();
+        }
+    }
+
+    // Handle accepting project invitation
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["accept_invite"])) {
+        $notificationId = $_POST["notification_id"] ?? null;
+        if ($notificationId) {
+            $notification = $notificationManager->getNotificationById($notificationId);
+            if ($notification && $notification['user_id'] == $user_id && $notification['type'] == 'project_invite') {
+                $projectId = $notification['related_id']; // Assuming related_id stores project_id
+                $inviterId = $notification['sender_id']; // Assuming sender_id stores inviter's user_id
+
+                if ($projectManager->addProjectMember($projectId, $user_id)) {
+                    $notificationManager->markNotificationAsRead($notificationId, $user_id);
+                    // Optionally, send a notification back to the inviter that the invite was accepted
+                    $inviter_notification_message = htmlspecialchars($user_name) . " has accepted your invitation to join project: " . htmlspecialchars($projectManager->getProjectById($projectId)['title']);
+                    $notificationManager->createNotification($inviterId, 'invite_accepted', 'Project Invitation Accepted', $inviter_notification_message, $user_id);
+                    header("Location: projects.php?join_success=true");
+                    exit();
+                } else {
+                    // Handle error if adding member fails (e.g., already a member)
+                    $error_message = "Failed to join project. You might already be a member.";
+                }
+            } else {
+                $error_message = "Invalid invitation or permission denied.";
+            }
+        }
+    }
+
+    // Handle declining project invitation
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["decline_invite"])) {
+        $notificationId = $_POST["notification_id"] ?? null;
+        if ($notificationId) {
+            $notification = $notificationManager->getNotificationById($notificationId);
+            if ($notification && $notification['user_id'] == $user_id && $notification['type'] == 'project_invite') {
+                $notificationManager->deleteNotification($notificationId, $user_id);
+                // Optionally, send a notification back to the inviter that the invite was declined
+                $projectId = $notification['related_id'];
+                $inviterId = $notification['sender_id'];
+                $inviter_notification_message = htmlspecialchars($user_name) . " has declined your invitation to join project: " . htmlspecialchars($projectManager->getProjectById($projectId)['title']);
+                $notificationManager->createNotification($inviterId, 'invite_declined', 'Project Invitation Declined', $inviter_notification_message, $user_id);
+                header("Location: notifications.php?declined=true");
+                exit();
+            } else {
+                $error_message = "Invalid invitation or permission denied.";
+            }
         }
     }
 
@@ -362,15 +427,24 @@
                             </div>
                         </div>
                         <div class="notification-actions">
-                            <?php if (!$notification['is_read']): ?>
-                            <form action="notifications.php" method="POST" style="display:inline;">
-                                <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
-                                <button type="submit" name="mark_read" class="mark-read-btn" title="Mark as Read">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                                    </svg>
-                                </button>
-                            </form>
+                            <?php if ($notification['type'] == 'project_invite' && !$notification['is_read']): ?>
+                                <form action="notifications.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
+                                    <button type="submit" name="accept_invite" class="btn btn-success" title="Accept Invite" style="background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Accept</button>
+                                </form>
+                                <form action="notifications.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
+                                    <button type="submit" name="decline_invite" class="btn btn-danger" title="Decline Invite" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Decline</button>
+                                </form>
+                            <?php elseif (!$notification['is_read']): ?>
+                                <form action="notifications.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
+                                    <button type="submit" name="mark_read" class="mark-read-btn" title="Mark as Read">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                        </svg>
+                                    </button>
+                                </form>
                             <?php endif; ?>
                             <form action="notifications.php" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this notification?');">
                                 <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
