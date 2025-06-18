@@ -966,7 +966,7 @@
             <hr style="border: 0; height: 1px; background-color: #eee; margin: 20px 0;">
             <div class="settings-buttons" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
                 <?php if ($is_supervisor): ?>
-                <button type="button" class="btn-green">Project tasks supervision</button>
+                <a href="Project tasks supervision.php?project_id=<?= htmlspecialchars($project_id) ?>" class="btn-green">Project tasks supervision</a>
                 <button type="button" class="btn-orange">Project settings</button>
                 <?php endif; ?>
                 <?php if (!$is_supervisor): // Only show exit button if not supervisor ?>
