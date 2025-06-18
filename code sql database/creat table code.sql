@@ -67,8 +67,9 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL, -- The recipient of the notification
     sender_id INT,        -- NEW: The user who originated/sent the notification (NULL for system-generated notifications like deadlines)
-    type ENUM('system_message', 'admin_message') NOT NULL,
-    content TEXT NOT NULL,
+    type ENUM('invite_to_project', 'task_update', 'task_deadline', 'admin_message') NOT NULL,
+    title VARCHAR(255) NOT NULL, -- Added title column
+    message TEXT NOT NULL, -- Renamed content to message for clarity
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
