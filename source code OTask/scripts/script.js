@@ -249,6 +249,34 @@ window.onload = function() {
         }
     });
 
+    // Settings Modal functionality
+    const settingsIcon = document.querySelector('.settings-icon');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsCloseButton = document.querySelector('.settings-close-button');
+    const exitProjectBtn = document.getElementById('exitProjectBtn');
+
+    console.log('Settings Icon Element:', settingsIcon); // Debugging line
+    console.log('Settings Modal Element:', settingsModal); // Debugging line
+
+    if (settingsIcon && settingsModal) {
+        settingsIcon.addEventListener('click', function() {
+            settingsModal.classList.add('show');
+        });
+    }
+
+    if (settingsCloseButton) {
+        settingsCloseButton.addEventListener('click', function() {
+            settingsModal.classList.remove('show');
+        });
+    }
+
+
+    window.addEventListener('click', function(event) {
+        if (event.target == settingsModal) {
+            settingsModal.classList.remove('show');
+        }
+    });
+
     // Copy deliverable link functionality
     const copyDeliverableLinkBtn = document.getElementById('copyDeliverableLink');
     if (copyDeliverableLinkBtn) {

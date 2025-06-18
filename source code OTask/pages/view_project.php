@@ -94,13 +94,6 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_task"])) {
         $taskId = $_POST["task_id"] ?? null;
         $title = $_POST["task_title"] ?? '';
-        $description = $_POST["task_description"] ?? '';
-        $priority = $_POST["task_priority"] ?? 'medium';
-        $startDate = $_POST["start_date"] ?? null;
-        $endDate = $_POST["end_date"] ?? null;
-        $status = $_POST["task_status"] ?? 'to_do';
-        $deliverableLink = $_POST["deliverable_link"] ?? null;
-        $assignedUserId = $_POST["assigned_user_id"] ?? null; // New: assigned user ID
 
         $errors = [];
 
@@ -224,6 +217,26 @@
         }
     }
 
+    // Handle project exit
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["exit_project"])) {
+        $projectIdToExit = $_POST["project_id_to_exit"] ?? 0;
+        if ($projectIdToExit > 0) {
+            // Ensure the user is a member and not the supervisor before allowing them to leave
+            if ($projectManager->isUserProjectMember($projectIdToExit, $user_id) && !$projectManager->isUserProjectSupervisor($projectIdToExit, $user_id)) {
+                if ($projectManager->leaveProject($projectIdToExit, $user_id)) {
+                    header("Location: projects.php?exit_success=true");
+                    exit();
+                } else {
+                    $error_message = "Failed to exit project.";
+                }
+            } else {
+                $error_message = "You cannot exit this project (you might be the supervisor or not a member).";
+            }
+        } else {
+            $error_message = "Invalid project ID for exit.";
+        }
+    }
+
     // Helper to map priority/status to CSS classes and labels (copied from mytask.php)
     function priorityClass($prio) {
         switch ($prio) {
@@ -266,7 +279,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project View: <?= $project ? htmlspecialchars($project['title']) : 'N/A' ?></title>
-    <link rel="stylesheet" href="../style/dashboard.css?v=5">
+    <link rel="stylesheet" href="../style/dashboard.css?v=1">
     <style>
         /* Inherit general styles from dashboard.css */
         .project-view-container {
@@ -277,6 +290,50 @@
             margin-bottom: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-green {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Make buttons full width */
+            margin-bottom: 10px; /* Space between buttons */
+        }
+        .btn-green:hover {
+            background-color: #218838;
+        }
+        .btn-orange {
+            background-color: #fd7e14; /* Orange */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Make buttons full width */
+            margin-bottom: 10px; /* Space between buttons */
+        }
+        .btn-orange:hover {
+            background-color: #e66b00;
+        }
+        .btn-danger {
+            background-color: #dc3545; /* Red for exit button */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Make buttons full width */
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
         }
         .project-header {
             display: flex;
@@ -636,8 +693,17 @@
         <div class="project-view-container">
             <?php if ($project): ?>
                 <div class="project-header">
-                    <h1>Project: <?= htmlspecialchars($project['title']) ?></h1>
-                    <!-- Add project settings/chat icons here if needed, similar to image -->
+                    <div class="project-name">
+                        <h1>Project: <?= htmlspecialchars($project['title']) ?> </h1>
+                        <img src="../imgs/setting.png" alt="Settings" class="project-icon settings-icon">
+                    </div>
+                    <div class="project-name">
+                        <img src="../imgs/Chat Bubble.png" alt="Chat" class="project-icon chat-icon">
+                        <?php if ($is_supervisor): ?>
+                        <button type="button" class="btn btn-primary" style="margin-left: 10px;">+ New Task</button>
+                        <button type="button" class="btn btn-primary" style="margin-left: 10px;">+ New Member</button>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="project-description-box">
                     <p><?= nl2br(htmlspecialchars($project['description'])) ?></p>
@@ -836,6 +902,31 @@
             </form>
         </div>
     </div>
+<!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings:</h2>
+                <span class="close-button settings-close-button">&times;</span>
+            </div>
+            <hr style="border: 0; height: 1px; background-color: #eee; margin: 20px 0;">
+            <div class="settings-buttons" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                <?php if ($is_supervisor): ?>
+                <button type="button" class="btn-green">Project tasks supervision</button>
+                <button type="button" class="btn-orange">Project settings</button>
+                <?php endif; ?>
+                <?php if (!$is_supervisor): // Only show exit button if not supervisor ?>
+                <form action="view_project.php?project_id=<?= htmlspecialchars($project_id) ?>" method="POST" onsubmit="return confirm('Are you sure you want to exit this project?');">
+                    <input type="hidden" name="exit_project" value="1">
+                    <input type="hidden" name="project_id_to_exit" value="<?= htmlspecialchars($project_id) ?>">
+                    <button type="submit" class="btn-danger" id="exitProjectBtn">Exit from project</button>
+                </form>
+                <?php else: ?>
+                <p style="color: #888; font-size: 14px;">Supervisors cannot exit their own projects.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
     <footer style="text-align:center; padding:20px 0; color:#fff;">
         &copy; <?= date('Y') ?> OTask. All rights reserved.
@@ -844,7 +935,31 @@
     <script>
         const currentUserId = <?= json_encode($user_id) ?>;
         const userRole = <?= json_encode($user_info['role'] ?? 'member') ?>; // Pass user role for client-side checks
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsIcon = document.querySelector('.settings-icon');
+            const settingsModal = document.getElementById('settingsModal');
+            const settingsCloseButtons = document.querySelectorAll('.settings-close-button');
+
+            if (settingsIcon) {
+                settingsIcon.addEventListener('click', function() {
+                    settingsModal.style.display = 'flex';
+                });
+            }
+
+            settingsCloseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    settingsModal.style.display = 'none';
+                });
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target == settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+            });
+        });
     </script>
-    <script src="../scripts/script.js?v=6"></script>
+    <script src="../scripts/script.js?v=1"></script>
 </body>
 </html>

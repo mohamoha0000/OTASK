@@ -96,8 +96,7 @@
         $deliverableLink = $_POST["deliverable_link"] ?? null;
         $task = $taskManager->getTaskById($taskId);
 
-        // Fetch assignedUserId AFTER fetching the task
-        $assignedUserId = $task['assigned_user_id'] ?? null; // Use null coalescing to prevent errors if $task is null
+        $assignedUserId = $_POST["assigned_user_id"] ?? null;
 
         $errors = [];
 
@@ -655,6 +654,14 @@
                 <div class="form-group">
                     <label for="editDueDate">Due Date</label>
                     <input type="datetime-local" id="editDueDate" name="end_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAssignedUser">Assigned To</label>
+                    <select id="editAssignedUser" name="assigned_user_id">
+                        <?php foreach ($all_users as $user_option): ?>
+                            <option value="<?= htmlspecialchars($user_option['id']) ?>"><?= htmlspecialchars($user_option['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="form-actions">
                     <button type="submit" name="update_task" class="btn btn-primary">Update Task</button>

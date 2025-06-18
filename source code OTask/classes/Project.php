@@ -194,4 +194,13 @@ class Project {
         $stmt->execute([':projectId' => $projectId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function leaveProject($projectId, $userId) {
+        // Check if the user is a member of the project (not the supervisor)
+        if ($this->isUserProjectMember($projectId, $userId) && !$this->isUserProjectSupervisor($projectId, $userId)) {
+            $stmt = $this->pdo->prepare("DELETE FROM project_members WHERE project_id = ? AND user_id = ?");
+            return $stmt->execute([$projectId, $userId]);
+        }
+        return false; // User is not a member or is the supervisor
+    }
 }
