@@ -56,13 +56,15 @@ window.onload = function() {
 
     closeButtons.forEach(button => {
         button.addEventListener('click', function() {
-            newTaskModal.classList.remove('show');
+            if (newTaskModal) { // Add null check
+                newTaskModal.classList.remove('show');
+            }
         });
     });
 
     // Close modal when clicking outside of it
     window.addEventListener('click', function(event) {
-        if (event.target == newTaskModal) {
+        if (newTaskModal && event.target == newTaskModal) { // Add null check
             newTaskModal.classList.remove('show');
         }
     });
@@ -265,6 +267,9 @@ window.onload = function() {
     const settingsCloseButtons = document.querySelectorAll('.settings-close-button');
 
     function openSettingsModal() {
+        if (projectMenuModal && projectMenuModal.classList.contains('show')) {
+            projectMenuModal.classList.remove('show'); // Close project menu modal if it's open
+        }
         settingsModal.classList.add('show');
     }
 

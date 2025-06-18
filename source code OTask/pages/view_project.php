@@ -1050,34 +1050,6 @@
         &copy; <?= date('Y') ?> OTask. All rights reserved.
     </footer>
 
-    <script>
-        const currentUserId = <?= json_encode($user_id) ?>;
-        const userRole = <?= json_encode($user_info['role'] ?? 'member') ?>; // Pass user role for client-side checks
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const settingsIcon = document.querySelector('.settings-icon');
-            const settingsModal = document.getElementById('settingsModal');
-            const settingsCloseButtons = document.querySelectorAll('.settings-close-button');
-
-            if (settingsIcon) {
-                settingsIcon.addEventListener('click', function() {
-                    settingsModal.style.display = 'flex';
-                });
-            }
-
-            settingsCloseButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    settingsModal.style.display = 'none';
-                });
-            });
-
-            window.addEventListener('click', function(event) {
-                if (event.target == settingsModal) {
-                    settingsModal.style.display = 'none';
-                }
-            });
-        });
-    </script>
     <script src="../scripts/script.js?v=3"></script>
 </body>
 </html>
