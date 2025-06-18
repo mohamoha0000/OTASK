@@ -65,6 +65,7 @@
             if($_SESSION["tempemail"]["code"]==$_POST["code"]){
                 $id=$user->getUserByEmail($_SESSION["tempemail"]["email"])["id"];
                 $user->creat_cookie($id);
+                $_SESSION['user_id'] = $id;
                 unset($_SESSION["tempemail"]);
                 if(isset($_SESSION["tempuser"])){unset($_SESSION["tempuser"]);}
                 header("Location:profile.php");
