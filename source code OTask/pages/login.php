@@ -63,9 +63,11 @@
     if(isset($_POST["login"])){
         if(isset($_SESSION["tempemail"])){
             if($_SESSION["tempemail"]["code"]==$_POST["code"]){
+                $id=$user->getUserByEmail($_SESSION["tempemail"]["email"])["id"];
+                $user->creat_cookie($id);
                 unset($_SESSION["tempemail"]);
                 if(isset($_SESSION["tempuser"])){unset($_SESSION["tempuser"]);}
-                header("Location:dashboard.php");
+                header("Location:profile.php");
             }else{
                 $errors["code"]="wrong code verifiction";
             }

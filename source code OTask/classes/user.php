@@ -19,20 +19,27 @@ class User {
         if ($user && password_verify($password, $user['password'])) {
 
             $_SESSION['user_id'] = $user['id'];
+            $this->creat_cookie($user['id']);
+            // $token = bin2hex(random_bytes(32));
+            // $hashedToken = hash('sha256', $token);
+            // $stmt = $this->db->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
+            // $stmt->execute([$hashedToken, $user['id']]);
 
-            $token = bin2hex(random_bytes(32));
-            $hashedToken = hash('sha256', $token);
-            $stmt = $this->db->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
-            $stmt->execute([$hashedToken, $user['id']]);
-
-            setcookie('remember_me', $token, time() + (86400 * 15), "/", "", false, true); //15 days
+            // setcookie('remember_me', $token, time() + (86400 * 15), "/", "", false, true); //15 days
 
             return true;
         }
     
         return false; 
     }
+    public function creat_cookie($id){
+        $token = bin2hex(random_bytes(32));
+        $hashedToken = hash('sha256', $token);
+        $stmt = $this->db->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
+        $stmt->execute([$hashedToken, $id]);
 
+        setcookie('remember_me', $token, time() + (86400 * 15), "/", "", false, true); //15 days
+    }
     public function autoLogin() {
         if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_me'])) {
             $token = $_COOKIE['remember_me'];
