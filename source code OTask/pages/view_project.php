@@ -969,6 +969,46 @@
             </form>
         </div>
     </div>
+<!-- New Task Modal -->
+    <div id="newTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Task</h2>
+                <span class="close-button new-task-close-button">&times;</span>
+            </div>
+            <form id="newTaskForm">
+                <input type="hidden" name="project_id" value="<?= htmlspecialchars($project_id) ?>">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" name="description" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority" name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskStartDate">Start Date</label>
+                    <input type="datetime-local" id="taskStartDate" name="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="taskEndDate">Due Date</label>
+                    <input type="datetime-local" id="taskEndDate" name="end_date">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 <!-- Settings Modal -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
@@ -1059,6 +1099,74 @@
 
     <script>
         const currentUserId = <?= json_encode($user_id) ?>;
+
+        // New Task Modal functionality (copied from Project tasks supervision.php)
+        const newTaskBtn = document.getElementById('newTaskBtn');
+        const newTaskBtnModal = document.getElementById('newTaskBtnModal'); // For the button in the project menu modal
+        const newTaskModal = document.getElementById('newTaskModal');
+        const newTaskCloseButtons = document.querySelectorAll('.new-task-close-button');
+        const newTaskForm = document.getElementById('newTaskForm');
+
+        if (newTaskBtn) {
+            newTaskBtn.addEventListener('click', () => {
+                newTaskModal.classList.add('show');
+            });
+        }
+
+        if (newTaskBtnModal) { // Add listener for the modal button
+            newTaskBtnModal.addEventListener('click', () => {
+                newTaskModal.classList.add('show');
+                document.getElementById('projectMenuModal').classList.remove('show'); // Close project menu modal if open
+            });
+        }
+
+        newTaskCloseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                newTaskModal.classList.remove('show');
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == newTaskModal) {
+                newTaskModal.classList.remove('show');
+            }
+        });
+
+        if (newTaskForm) {
+            newTaskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                data.project_id = <?php echo $project_id; ?>; // Ensure project_id is included
+
+                // Add priority, start_date, and end_date to the data
+                data.priority = document.getElementById('taskPriority').value;
+                data.start_date = document.getElementById('taskStartDate').value;
+                data.end_date = document.getElementById('taskEndDate').value;
+
+                fetch('../api/create_task.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Task created successfully!');
+                        newTaskModal.classList.remove('show');
+                        location.reload(); // Reload to update task list
+                    } else {
+                        alert('Error creating task: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the task.');
+                });
+            });
+        }
     </script>
     <script src="../scripts/script.js?v=3"></script>
 </body>
