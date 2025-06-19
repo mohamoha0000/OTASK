@@ -7,9 +7,9 @@ class Project {
         $this->pdo = $pdo;
     }
 
-    public function createProject($title, $description, $supervisorId) {
-        $stmt = $this->pdo->prepare("INSERT INTO projects (title, description, supervisor_id) VALUES (?, ?, ?)");
-        if ($stmt->execute([$title, $description, $supervisorId])) {
+    public function createProject($title, $description, $supervisorId, $visibility = 0) { // Default to private (0)
+        $stmt = $this->pdo->prepare("INSERT INTO projects (title, description, supervisor_id, visibility) VALUES (?, ?, ?, ?)");
+        if ($stmt->execute([$title, $description, $supervisorId, $visibility])) {
             return $this->pdo->lastInsertId();
         }
         return false;
@@ -49,7 +49,7 @@ class Project {
     }
 
     public function getProjectById($projectId) {
-        $stmt = $this->pdo->prepare("SELECT * FROM projects WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT *, CAST(visibility AS UNSIGNED) as visibility FROM projects WHERE id = ?");
         $stmt->execute([$projectId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -213,5 +213,34 @@ class Project {
         // Add the user as a member
         $stmt = $this->pdo->prepare("INSERT INTO project_members (project_id, user_id) VALUES (?, ?)");
         return $stmt->execute([$projectId, $userId]);
+    }
+    public function updateProjectDetails($projectId, $title, $description, $visibility) {
+        $stmt = $this->pdo->prepare("UPDATE projects SET title = ?, description = ?, visibility = ? WHERE id = ?");
+        return $stmt->execute([$title, $description, (int)$visibility, $projectId]);
+    }
+
+    public function deleteProject($projectId) {
+        try {
+            $this->pdo->beginTransaction();
+
+            // Delete related tasks
+            $stmtTasks = $this->pdo->prepare("DELETE FROM tasks WHERE project_id = ?");
+            $stmtTasks->execute([$projectId]);
+
+            // Delete project members
+            $stmtMembers = $this->pdo->prepare("DELETE FROM project_members WHERE project_id = ?");
+            $stmtMembers->execute([$projectId]);
+
+            // Delete the project itself
+            $stmtProject = $this->pdo->prepare("DELETE FROM projects WHERE id = ?");
+            $stmtProject->execute([$projectId]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            error_log("Error deleting project: " . $e->getMessage());
+            return false;
+        }
     }
 }

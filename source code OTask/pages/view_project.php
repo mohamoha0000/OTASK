@@ -1020,7 +1020,7 @@
             <div class="settings-buttons" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
                 <?php if ($is_supervisor): ?>
                 <a href="Project tasks supervision.php?project_id=<?= htmlspecialchars($project_id) ?>" class="btn-green">Project tasks supervision</a>
-                <button type="button" class="btn-orange">Project settings</button>
+                <a href="project_settings.php?project_id=<?= htmlspecialchars($project_id) ?>" class="btn-orange">Project settings</a>
                 <?php endif; ?>
                 <?php if (!$is_supervisor): // Only show exit button if not supervisor ?>
                 <form action="view_project.php?project_id=<?= htmlspecialchars($project_id) ?>" method="POST" onsubmit="return confirm('Are you sure you want to exit this project?');">

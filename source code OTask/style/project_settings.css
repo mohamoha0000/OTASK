@@ -1,0 +1,245 @@
+.settings-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin: 20px auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #333; /* Set text color to dark for contrast with white background */
+}
+
+.settings-page-title {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.settings-info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.settings-info-item label {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.settings-info-item input[type="text"],
+.settings-info-item textarea {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+}
+
+.settings-info-item textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.visibility-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.visibility-label {
+    font-size: 18px;
+    color: #e74c3c; /* Red color for VISIBILITY */
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.visibility-status {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+.change-visibility-button {
+    background-color: #f39c12; /* Orange */
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.change-visibility-button:hover {
+    background-color: #e67e22;
+}
+
+.save-settings-button {
+    background-color: #28a745; /* Green */
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.save-settings-button:hover {
+    background-color: #218838;
+}
+
+.delete-button {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+/* Modal Styles (similar to profile.css and view_project.php) */
+.modal {
+    display: none; /* Hidden by default, controlled by JS */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 22px;
+}
+
+.modal-content .radio-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal-content .radio-group label {
+    font-size: 16px;
+    color: #555;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.modal-content .radio-group input[type="radio"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.modal-content button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 30px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .settings-card {
+        padding: 30px;
+    }
+
+    .settings-page-title {
+        font-size: 24px;
+    }
+
+    .settings-info-item label {
+        font-size: 16px;
+    }
+
+    .settings-info-item input[type="text"],
+    .settings-info-item textarea {
+        font-size: 14px;
+    }
+
+    .change-visibility-button,
+    .save-settings-button,
+    .delete-button {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
