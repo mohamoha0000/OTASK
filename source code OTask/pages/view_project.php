@@ -209,7 +209,7 @@
                 }
 
                 if ($updateSuccess) {
-                    header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&task_updated=success");
+                    header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&task_updated=success&member=" . htmlspecialchars($assignedUserId));
                     exit();
                 } else {
                     if (!isset($error_message)) {
