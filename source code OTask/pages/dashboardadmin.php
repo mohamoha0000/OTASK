@@ -89,6 +89,36 @@
 
     // 1. Get notification count using the Notification class
     $unread_notifications = $notificationManager->getUnreadCount($user_id);
+
+    // Handle sending notifications
+    if (isset($_POST['send_notification'])) {
+        $recipient_id = $_POST['recipient_id'];
+        $title = trim($_POST['title']);
+        $message = trim($_POST['message']);
+        $notification_type = 'admin_message'; // Or a more specific type
+
+        if (empty($title) || empty($message)) {
+            echo "<script>alert('Notification title and message cannot be empty.');</script>";
+        } else {
+            if ($recipient_id === 'all') {
+                $all_users_for_notification = $user->getAllUsers(); // Get all users again for sending
+                $sent_count = 0;
+                foreach ($all_users_for_notification as $u) {
+                    if ($notificationManager->createNotification($u['id'], $notification_type, $title, $message, null, $user_id)) {
+                        $sent_count++;
+                    }
+                }
+                echo "<script>alert('Notification sent to " . $sent_count . " users.');</script>";
+            } else {
+                // Send to a specific user
+                if ($notificationManager->createNotification($recipient_id, $notification_type, $title, $message, null, $user_id)) {
+                    echo "<script>alert('Notification sent successfully!');</script>";
+                } else {
+                    echo "<script>alert('Failed to send notification.');</script>";
+                }
+            }
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -244,15 +274,20 @@
                 <h2>Send Notification</h2>
                 <span class="close-button">&times;</span>
             </div>
-            <form action="#" method="POST">
+            <form action="" method="POST">
                 <div class="form-group">
                     <label for="notificationRecipient">Recipient</label>
                     <select id="notificationRecipient" name="recipient_id" required>
                         <option value="">Select User</option>
+                        <option value="all">All Users</option>
                         <?php foreach ($all_users as $user_option): ?>
                             <option value="<?= htmlspecialchars($user_option['id']) ?>"><?= htmlspecialchars($user_option['name']) ?> (<?= htmlspecialchars($user_option['email']) ?>)</option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="notificationTitle">Title</label>
+                    <input type="text" id="notificationTitle" name="title" required>
                 </div>
                 <div class="form-group">
                     <label for="notificationMessage">Message</label>
