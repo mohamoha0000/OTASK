@@ -704,7 +704,11 @@ foreach ($project_tasks as $proj_task) {
                                     <td class="employee-name"><?php echo htmlspecialchars($member['name']); ?></td>
                                     <td><span class="task-count"><?php echo htmlspecialchars($member['task_count']); ?></span></td>
                                     <td class="actions">
-                                        <button class="btn btn-delete" onclick="deleteEmployee('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Delete</button>
+                                        <?php if ($member['id'] != $current_user_id): ?>
+                                            <button class="btn btn-delete" onclick="deleteEmployee('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>, <?php echo $project_id; ?>)">Delete</button>
+                                        <?php else: ?>
+                                            <button class="btn btn-delete" disabled title="You cannot delete yourself from the project.">Delete</button>
+                                        <?php endif; ?>
                                         <button class="btn btn-info" onclick="showInfo('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Information</button>
                                         <button class="btn btn-assign" onclick="showAssignTasksModal('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Assign Task</button>
                                     </td>
@@ -936,13 +940,28 @@ foreach ($project_tasks as $proj_task) {
             });
         });
 
-        function deleteEmployee(name, id) {
-            if (confirm(`Are you sure you want to delete ${name}?`)) {
-                alert(`${name} (ID: ${id}) has been deleted successfully!`);
-                // In a real application, you would send an AJAX request to a PHP script to delete the employee
-                // Example: fetch('api/delete_employee.php', { method: 'POST', body: JSON.stringify({ id: id }) })
-                // .then(response => response.json())
-                // .then(data => { if(data.success) { location.reload(); } });
+        function deleteEmployee(name, id, projectId) {
+            if (confirm(`Are you sure you want to remove ${name} from this project?`)) {
+                fetch('../api/delete_member.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ member_id: id, project_id: projectId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`${name} has been removed from the project successfully!`);
+                        location.reload(); // Reload to update member list
+                    } else {
+                        alert('Failed to remove member: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while removing the member.');
+                });
             }
         }
 
@@ -1062,8 +1081,26 @@ foreach ($project_tasks as $proj_task) {
 
         function deleteTask(taskTitle, id) {
             if (confirm(`Are you sure you want to delete the task "${taskTitle}"?`)) {
-                alert(`Task "${taskTitle}" (ID: ${id}) has been deleted successfully!`);
-                // In a real application, you would send an AJAX request to delete the task
+                fetch('../api/delete_task.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task_id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Task "${taskTitle}" has been deleted successfully!`);
+                        location.reload(); // Reload to update task list
+                    } else {
+                        alert('Failed to delete task: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the task.');
+                });
             }
         }
 
