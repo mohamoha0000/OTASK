@@ -262,4 +262,10 @@ class Task {
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$userId, $taskId]);
     }
+ 
+    public function unassignTask($taskId) {
+        $sql = "UPDATE tasks SET assigned_user_id = NULL, status = 'to_do', last_mod = NOW() WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$taskId]);
+    }
 }

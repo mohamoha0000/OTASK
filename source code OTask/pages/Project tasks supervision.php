@@ -306,9 +306,24 @@ foreach ($project_tasks as $proj_task) {
             color: white;
         }
 
+        .btn-assign {
+            background: linear-gradient(135deg, var(--color-success), #059669);
+            color: white;
+        }
+ 
         .btn-assign:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+ 
+        .btn-unassign {
+            background: linear-gradient(135deg, #F59E0B, #D97706); /* Amber 500 to Amber 700 */
+            color: white;
+        }
+ 
+        .btn-unassign:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
         }
 
         .btn:active {
@@ -786,7 +801,9 @@ foreach ($project_tasks as $proj_task) {
                                     <td class="actions">
                                         <button class="btn btn-delete" onclick="deleteTask('<?php echo htmlspecialchars($proj_task['title']); ?>', <?php echo $proj_task['id']; ?>)">Delete</button>
                                         <button class="btn btn-info" onclick="showTaskInfo('<?php echo htmlspecialchars($proj_task['title']); ?>', <?php echo $proj_task['id']; ?>)">Information</button>
-                                        <?php if ($proj_task['assigned_user_name'] === 'Unassigned'): ?>
+                                        <?php if ($proj_task['assigned_user_name'] !== 'Unassigned'): ?>
+                                            <button class="btn btn-unassign" onclick="unassignTask('<?php echo htmlspecialchars($proj_task['title']); ?>', <?php echo $proj_task['id']; ?>)">Unassign</button>
+                                        <?php else: ?>
                                             <button class="btn btn-assign" onclick="assignMemberToTask('<?php echo htmlspecialchars($proj_task['title']); ?>', <?php echo $proj_task['id']; ?>)">Assign Member</button>
                                         <?php endif; ?>
                                     </td>
@@ -1126,6 +1143,31 @@ foreach ($project_tasks as $proj_task) {
         function showTaskInfo(taskTitle, id) {
             alert(`Showing detailed information for task: "${taskTitle}" (ID: ${id})\n\nThis would typically open a detailed view or modal with complete task information, timeline, attachments, and comments.`);
             // In a real application, you would fetch detailed task info via AJAX
+        }
+ 
+        function unassignTask(taskTitle, taskId) {
+            if (confirm(`Are you sure you want to unassign the task "${taskTitle}"?`)) {
+                fetch('../api/unassign_task.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task_id: taskId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Task "${taskTitle}" has been unassigned successfully!`);
+                        location.reload(); // Reload to update task list
+                    } else {
+                        alert('Failed to unassign task: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while unassigning the task.');
+                });
+            }
         }
 
         let currentTaskIdForAssignment = null;
