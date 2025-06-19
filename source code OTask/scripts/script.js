@@ -43,6 +43,20 @@ window.onload = function() {
         });
     }
 
+    // Close the mobile menu when a link is clicked
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+        });
+    });
+
+    // Close the mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!navLinks.contains(event.target) && !mobileMenu.contains(event.target)) {
+            navLinks.classList.remove('active');
+        }
+    });
+
     const newTaskButton = document.getElementById('newTaskBtn');
     const newTaskModal = document.getElementById('newTaskModal');
     const closeButtons = document.querySelectorAll('.close-button');
@@ -401,5 +415,139 @@ window.onload = function() {
                 alert('No deliverable link to copy.');
             }
         });
+    }
+
+    // Handle modal display for assign all tasks
+    const assignAllTasksModal = document.getElementById('assignAllTasksModal');
+    const assignAllTasksCloseButtons = document.querySelectorAll('.assign-all-tasks-close-button');
+
+    if (assignAllTasksModal) {
+        assignAllTasksCloseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                assignAllTasksModal.classList.remove('show');
+                assignAllTasksModal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == assignAllTasksModal) {
+                assignAllTasksModal.classList.remove('show');
+                assignAllTasksModal.style.display = 'none';
+            }
+        });
+    }
+
+    // New functionality for "Assign Unassigned Task" button and modal
+    const assignUnassignedTaskBtn = document.getElementById('assignUnassignedTaskBtn');
+    const assignUnassignedTaskModal = document.getElementById('assignUnassignedTaskModal');
+    const assignUnassignedTaskCloseButtons = document.querySelectorAll('.assign-unassigned-task-close-button');
+    const unassignedTasksForAssignmentList = document.getElementById('unassignedTasksForAssignmentList');
+
+    if (assignUnassignedTaskBtn && assignUnassignedTaskModal) {
+        assignUnassignedTaskBtn.addEventListener('click', () => {
+            assignUnassignedTaskModal.classList.add('show');
+            fetchUnassignedTasksForAssignment();
+        });
+    }
+
+    assignUnassignedTaskCloseButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            assignUnassignedTaskModal.classList.remove('show');
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == assignUnassignedTaskModal) {
+            assignUnassignedTaskModal.classList.remove('show');
+        }
+    });
+
+    function fetchUnassignedTasksForAssignment() {
+        const projectId = new URLSearchParams(window.location.search).get('project_id');
+        fetch(`../api/get_unassigned_tasks.php?project_id=${projectId}`)
+            .then(response => response.json())
+            .then(result => {
+                unassignedTasksForAssignmentList.innerHTML = '';
+                if (result.success && result.tasks.length > 0) {
+                    result.tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span>${task.title}</span>
+                            <select class="assign-member-dropdown" data-task-id="${task.id}">
+                                <option value="">Select Member</option>
+                                ${projectMembers.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
+                            </select>
+                            <button class="btn btn-assign btn-small" onclick="assignTaskToSelectedMember(${task.id})">Assign</button>
+                        `;
+                        unassignedTasksForAssignmentList.appendChild(li);
+                    });
+
+                    // Add event listeners for dropdown changes
+                    document.querySelectorAll('.assign-member-dropdown').forEach(dropdown => {
+                        dropdown.addEventListener('change', function() {
+                            const taskId = this.dataset.taskId;
+                            const assignButton = this.nextElementSibling; // The assign button is the next sibling
+                            if (this.value) {
+                                assignButton.disabled = false;
+                            } else {
+                                assignButton.disabled = true;
+                            }
+                        });
+                        // Initially disable assign button if no member is selected
+                        const assignButton = dropdown.nextElementSibling;
+                        assignButton.disabled = true;
+                    });
+
+                } else {
+                    unassignedTasksForAssignmentList.innerHTML = '<li>No unassigned tasks available.</li>';
+                    if (result.message) {
+                        console.warn('API message:', result.message);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching unassigned tasks:', error);
+                unassignedTasksForAssignmentList.innerHTML = '<li>Error loading tasks.</li>';
+            });
+    }
+
+    function assignTaskToSelectedMember(taskId) {
+        const dropdown = document.querySelector(`.assign-member-dropdown[data-task-id="${taskId}"]`);
+        const assignedUserId = dropdown.value;
+        const taskTitle = dropdown.previousElementSibling.textContent; // Get task title from the span
+        const assignedUserName = dropdown.options[dropdown.selectedIndex].text; // Get selected member name
+
+        if (assignedUserId) {
+            if (confirm(`Assign "${taskTitle}" to ${assignedUserName}?`)) {
+                const projectId = new URLSearchParams(window.location.search).get('project_id');
+                fetch('../api/assign_task_to_member.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task_id: taskId,
+                        user_id: assignedUserId,
+                        project_id: projectId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Task "${taskTitle}" assigned to ${assignedUserName} successfully!`);
+                        assignUnassignedTaskModal.classList.remove('show');
+                        location.reload(); // Reload to update task lists
+                    } else {
+                        alert('Failed to assign task: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error assigning task:', error);
+                    alert('An error occurred while assigning the task.');
+                });
+            }
+        } else {
+            alert('Please select a member to assign the task to.');
+        }
     }
 };

@@ -52,7 +52,7 @@ $project_tasks = $task->getTasksByProjectIdFiltered($project_id); // Using the f
 // Prepare data for members tab
 $members_data = [];
 foreach ($project_members as $member) {
-    $member_task_count = $task->getTaskCountForUser($member['id'], 'active'); // Get active tasks for each member
+    $member_task_count = $task->getTaskCountForUserFiltered($member['id'], '', '', $project_id); // Get all tasks for each member in this project
     $members_data[] = [
         'id' => $member['id'],
         'name' => $member['name'],
@@ -81,7 +81,7 @@ foreach ($project_tasks as $proj_task) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Tasks Supervision - <?php echo htmlspecialchars($project_info['title']); ?></title>
     <link rel="stylesheet" href="../style/style.css">
-    <link rel="stylesheet" href="../style/dashboard.css?v=5">
+    <link rel="stylesheet" href="../style/dashboard.css?v=1">
     <style>
         :root {
             /* Primary Theme Colors */
@@ -449,6 +449,163 @@ foreach ($project_tasks as $proj_task) {
             display: block;
             width: fit-content;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--color-bg-card);
+            margin: auto;
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+        }
+
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--color-error);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-text-main);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="datetime-local"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #D1D5DB;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            color: var(--color-text-main);
+            background-color: var(--color-bg-main);
+            box-sizing: border-box; /* Ensure padding doesn't add to width */
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-actions {
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .form-actions .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .form-actions .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .unassigned-task-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius-md);
+            background-color: #F9FAFB;
+        }
+
+        .unassigned-task-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .unassigned-task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .unassigned-task-list li span {
+            font-weight: 500;
+            color: var(--color-text-main);
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .unassigned-task-list .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -520,9 +677,9 @@ foreach ($project_tasks as $proj_task) {
         </div>
 
         <div id="Members" class="tab-content active">
-            <button class="new-button">+ New Members</button>
+            <button type="button" class="btn btn-primary" id="newMemberBtn">+ New Member</button>
             <div class="search-bar">
-                <input type="text" placeholder="Search members...">
+                <input type="text" id="memberSearchInput" placeholder="Search members...">
                 <span class="search-icon">🔍</span>
             </div>
             <div class="table-container">
@@ -547,7 +704,7 @@ foreach ($project_tasks as $proj_task) {
                                     <td class="actions">
                                         <button class="btn btn-delete" onclick="deleteEmployee('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Delete</button>
                                         <button class="btn btn-info" onclick="showInfo('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Information</button>
-                                        <button class="btn btn-assign" onclick="assignTaskToMember('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Assign Task</button>
+                                        <button class="btn btn-assign" onclick="showAssignTasksModal('<?php echo htmlspecialchars($member['name']); ?>', <?php echo $member['id']; ?>)">Assign Task</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -558,9 +715,10 @@ foreach ($project_tasks as $proj_task) {
         </div>
 
         <div id="Tasks" class="tab-content">
-            <button class="new-button">+ New Task</button>
+            <button class="new-button" id="newTaskBtn">+ New Task</button>
+            <button class="new-button" id="assignUnassignedTaskBtn" style="background: linear-gradient(135deg, #1D4ED8, #3B82F6);">Assign Unassigned Task</button>
             <div class="search-bar">
-                <input type="text" placeholder="Search tasks...">
+                <input type="text" id="taskSearchInput" placeholder="Search tasks...">
                 <span class="search-icon">🔍</span>
             </div>
             <select class="select-owner">
@@ -636,6 +794,144 @@ foreach ($project_tasks as $proj_task) {
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementsByClassName('tab-button')[0].click(); // Clicks the first tab (Members) by default
 
+            // Get elements for invite member modal
+            const newMemberBtn = document.getElementById('newMemberBtn');
+            const inviteMemberModal = document.getElementById('inviteMemberModal');
+            const inviteMemberCloseButtons = document.querySelectorAll('.invite-member-close-button');
+
+            if (newMemberBtn) {
+                newMemberBtn.addEventListener('click', () => {
+                    inviteMemberModal.classList.add('show');
+                });
+            }
+
+            inviteMemberCloseButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    inviteMemberModal.classList.remove('show');
+                });
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == inviteMemberModal) {
+                    inviteMemberModal.classList.remove('show');
+                }
+            });
+
+            // New Task Modal functionality
+            const newTaskBtn = document.getElementById('newTaskBtn');
+            const newTaskModal = document.getElementById('newTaskModal');
+            const newTaskCloseButtons = document.querySelectorAll('.new-task-close-button');
+            const newTaskForm = document.getElementById('newTaskForm');
+
+            if (newTaskBtn) {
+                newTaskBtn.addEventListener('click', () => {
+                    newTaskModal.classList.add('show');
+                });
+            }
+
+            newTaskCloseButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    newTaskModal.classList.remove('show');
+                });
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == newTaskModal) {
+                    newTaskModal.classList.remove('show');
+                }
+            });
+
+            if (newTaskForm) {
+                newTaskForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    const data = Object.fromEntries(formData.entries());
+                    data.project_id = <?php echo $project_id; ?>; // Ensure project_id is included
+
+                    // Add priority, start_date, and end_date to the data
+                    data.priority = document.getElementById('taskPriority').value;
+                    data.start_date = document.getElementById('taskStartDate').value;
+                    data.end_date = document.getElementById('taskEndDate').value;
+
+                    fetch('../api/create_task.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert('Task created successfully!');
+                            newTaskModal.classList.remove('show');
+                            location.reload(); // Reload to update task list
+                        } else {
+                            alert('Error creating task: ' + result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while creating the task.');
+                    });
+                });
+            }
+
+            // Search functionality for members
+            const memberSearchInput = document.getElementById('memberSearchInput');
+            if (memberSearchInput) {
+                memberSearchInput.addEventListener('keyup', function() {
+                    const filter = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#Members tbody tr');
+                    rows.forEach(row => {
+                        const name = row.querySelector('.employee-name').textContent.toLowerCase();
+                        if (name.includes(filter)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Search functionality for tasks
+            const taskSearchInput = document.getElementById('taskSearchInput');
+            if (taskSearchInput) {
+                taskSearchInput.addEventListener('keyup', function() {
+                    const filter = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#Tasks tbody tr');
+                    rows.forEach(row => {
+                        const title = row.querySelector('.task-title').textContent.toLowerCase();
+                        const description = row.querySelector('.task-description').textContent.toLowerCase();
+                        const owner = row.querySelector('.owner-assigned, .owner-unassigned').textContent.toLowerCase();
+                        if (title.includes(filter) || description.includes(filter) || owner.includes(filter)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Filter by owner for tasks
+            const selectOwner = document.querySelector('.select-owner');
+            if (selectOwner) {
+                selectOwner.addEventListener('change', function() {
+                    const filter = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#Tasks tbody tr');
+                    rows.forEach(row => {
+                        const ownerSpan = row.querySelector('.owner-assigned, .owner-unassigned');
+                        const owner = ownerSpan ? ownerSpan.textContent.toLowerCase() : '';
+
+                        if (filter === '' || owner.includes(filter) || (filter === 'unassigned' && owner === 'unassigned')) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
             const rows = document.querySelectorAll('tbody tr');
             rows.forEach((row, index) => {
                 row.style.animationDelay = `${index * 0.1}s`;
@@ -654,15 +950,116 @@ foreach ($project_tasks as $proj_task) {
         }
 
         function showInfo(name, id) {
-            alert(`Showing information for ${name} (ID: ${id})\n\nThis would typically open a detailed view or modal with employee information.`);
-            // In a real application, you would fetch detailed info via AJAX
+            const memberTasksInfoModal = document.getElementById('memberTasksInfoModal');
+            memberTasksInfoModal.style.display = 'flex';
+            memberTasksInfoModal.classList.add('show');
+            document.getElementById('memberTasksInfoName').textContent = name;
+            fetchMemberTasks(id, <?php echo $project_id; ?>);
         }
 
-        function assignTaskToMember(name, id) {
-            const taskName = prompt(`Enter the task to assign to ${name}:`);
-            if (taskName && taskName.trim()) {
-                alert(`Task "${taskName}" has been assigned to ${name} (ID: ${id})!`);
-                // In a real application, you would send an AJAX request to assign the task
+        function fetchMemberTasks(memberId, projectId) {
+            fetch(`../api/get_tasks_for_member_in_project.php?member_id=${memberId}&project_id=${projectId}`)
+                .then(response => response.json())
+                .then(result => {
+                    const taskList = document.getElementById('memberTasksList');
+                    taskList.innerHTML = '';
+                    if (result.success && result.tasks.length > 0) {
+                        result.tasks.forEach(task => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <span><strong>${task.title}</strong> (Status: ${task.status})</span>
+                                <p>${task.description}</p>
+                                <p>Due: ${task.end_date ? new Date(task.end_date).toLocaleString() : 'N/A'}</p>
+                            `;
+                            taskList.appendChild(li);
+                        });
+                    } else {
+                        taskList.innerHTML = '<li>No tasks found for this member in this project.</li>';
+                        if (result.message) {
+                            console.warn('API message:', result.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching member tasks:', error);
+                    document.getElementById('memberTasksList').innerHTML = '<li>Error loading tasks.</li>';
+                });
+        }
+
+        let currentMemberIdForAssignment = null;
+        let currentMemberNameForAssignment = null;
+
+        function showAssignTasksModal(memberName, memberId) {
+            currentMemberIdForAssignment = memberId;
+            currentMemberNameForAssignment = memberName;
+            const assignAllTasksModal = document.getElementById('assignAllTasksModal');
+            assignAllTasksModal.style.display = 'flex';
+            assignAllTasksModal.classList.add('show');
+            document.getElementById('assignAllTasksMemberName').textContent = memberName;
+            fetchUnassignedTasks();
+        }
+
+        function fetchUnassignedTasks() {
+            const projectId = <?php echo $project_id; ?>;
+            fetch(`../api/get_unassigned_tasks.php?project_id=${projectId}`)
+                .then(response => response.json())
+                .then(result => {
+                    const taskList = document.getElementById('unassignedTaskList');
+                    taskList.innerHTML = '';
+                    if (result.success && result.tasks.length > 0) {
+                        result.tasks.forEach(task => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <span>${task.title}</span>
+                                <button class="btn btn-assign btn-small" onclick="assignTaskFromModal(${task.id}, '${task.title}')">Assign</button>
+                            `;
+                            taskList.appendChild(li);
+                        });
+                    } else {
+                        taskList.innerHTML = '<li>No unassigned tasks available.</li>';
+                        if (result.message) {
+                            console.warn('API message:', result.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching unassigned tasks:', error);
+                    document.getElementById('unassignedTaskList').innerHTML = '<li>Error loading tasks.</li>';
+                });
+        }
+
+        function assignTaskFromModal(taskId, taskTitle) {
+            if (currentMemberIdForAssignment) {
+                if (confirm(`Assign "${taskTitle}" to ${currentMemberNameForAssignment}?`)) {
+                    fetch('../api/assign_task_to_member.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            task_id: taskId,
+                            user_id: currentMemberIdForAssignment,
+                            project_id: <?php echo $project_id; ?>
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`Task "${taskTitle}" assigned to ${currentMemberNameForAssignment} successfully!`);
+                            document.getElementById('assignAllTasksModal').classList.remove('show');
+                            document.getElementById('assignAllTasksModal').style.display = 'none';
+                            location.reload(); // Reload to update task lists
+                        } else {
+                            alert('Failed to assign task: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error assigning task:', error);
+                        alert('An error occurred while assigning the task.');
+                    });
+                }
+            } else {
+                alert('No member selected for assignment.');
             }
         }
 
@@ -678,15 +1075,242 @@ foreach ($project_tasks as $proj_task) {
             // In a real application, you would fetch detailed task info via AJAX
         }
 
+        let currentTaskIdForAssignment = null;
+        let currentTaskTitleForAssignment = null;
+
         function assignMemberToTask(taskTitle, taskId) {
-            const memberId = prompt(`Enter the member ID to assign to "${taskTitle}":`); // Or use a dropdown/modal for selection
-            if (memberId && memberId.trim()) {
-                alert(`Task "${taskTitle}" (ID: ${taskId}) has been assigned to member ID: ${memberId}!`);
-                // In a real application, you would send an AJAX request to assign the member to the task
+            currentTaskIdForAssignment = taskId;
+            currentTaskTitleForAssignment = taskTitle;
+            document.getElementById('assignSpecificTaskModal').classList.add('show');
+            document.getElementById('assignSpecificTaskTitle').textContent = taskTitle;
+            // Populate the member dropdown in this modal
+            const memberSelect = document.getElementById('assignSpecificTaskMemberSelect');
+            memberSelect.innerHTML = '<option value="">Select Member</option>';
+            projectMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.name;
+                memberSelect.appendChild(option);
+            });
+        }
+
+        function confirmAssignSpecificTask() {
+            const memberId = document.getElementById('assignSpecificTaskMemberSelect').value;
+            if (!memberId) {
+                alert('Please select a member.');
+                return;
+            }
+
+            if (confirm(`Assign "${currentTaskTitleForAssignment}" to the selected member?`)) {
+                fetch('../api/assign_task_to_member.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task_id: currentTaskIdForAssignment,
+                        user_id: memberId,
+                        project_id: <?php echo $project_id; ?>
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Task "${currentTaskTitleForAssignment}" assigned successfully!`);
+                        document.getElementById('assignSpecificTaskModal').classList.remove('show');
+                        location.reload(); // Reload to update task lists
+                    } else {
+                        alert('Failed to assign task: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error assigning task:', error);
+                    alert('An error occurred while assigning the task.');
+                });
             }
         }
     </script>
+    <!-- Invite Member Modal -->
+    <div id="inviteMemberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Invite Member</h2>
+                <span class="close-button invite-member-close-button">&times;</span>
+            </div>
+            <form action="view_project.php?project_id=<?= htmlspecialchars($project_id) ?>" method="POST">
+                <input type="hidden" name="project_id" value="<?= htmlspecialchars($project_id) ?>">
+                <div class="form-group">
+                    <label for="memberEmail">Email of member</label>
+                    <input type="email" id="memberEmail" name="member_email" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" name="send_invite" class="btn btn-primary">Send Invite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <?php if (isset($_GET['invite_failed']) && isset($_SESSION['form_errors'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const errors = <?= json_encode($_SESSION['form_errors']) ?>;
+            if (errors.length > 0) {
+                alert("Failed to invite member:\n" + errors.join("\n"));
+            }
+            <?php unset($_SESSION['form_errors']); // Clear the errors after displaying ?>
+        });
+    </script>
+    <?php endif; ?>
+
+    <!-- Assign All Tasks Modal (Existing - for assigning to a specific member) -->
+    <div id="assignAllTasksModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assign Tasks to <span id="assignAllTasksMemberName"></span></h2>
+                <span class="close-button assign-all-tasks-close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>Unassigned Tasks:</h3>
+                <ul id="unassignedTaskList" class="unassigned-task-list">
+                    <!-- Tasks will be loaded here via JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Unassigned Task Modal (New - for assigning a task to a selected member) -->
+    <div id="assignUnassignedTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assign Unassigned Task</h2>
+                <span class="close-button assign-unassigned-task-close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>Select a Task and Assign a Member:</h3>
+                <ul id="unassignedTasksForAssignmentList" class="unassigned-task-list">
+                    <!-- Unassigned tasks with member dropdowns will be loaded here via JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Specific Task Modal (New - for assigning a specific task to a member) -->
+    <div id="assignSpecificTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assign Task: <span id="assignSpecificTaskTitle"></span></h2>
+                <span class="close-button assign-specific-task-close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="assignSpecificTaskMemberSelect">Assign to Member:</label>
+                    <select id="assignSpecificTaskMemberSelect" class="select-owner">
+                        <!-- Members will be loaded here via JavaScript -->
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="confirmAssignSpecificTask()">Assign Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div id="newTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Task</h2>
+                <span class="close-button new-task-close-button">&times;</span>
+            </div>
+            <form id="newTaskForm">
+                <input type="hidden" name="project_id" value="<?= htmlspecialchars($project_id) ?>">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" name="description" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority" name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskStartDate">Start Date</label>
+                    <input type="datetime-local" id="taskStartDate" name="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="taskEndDate">Due Date</label>
+                    <input type="datetime-local" id="taskEndDate" name="end_date">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Member Tasks Info Modal -->
+    <div id="memberTasksInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tasks for <span id="memberTasksInfoName"></span></h2>
+                <span class="close-button member-tasks-info-close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <ul id="memberTasksList" class="unassigned-task-list">
+                    <!-- Member's tasks will be loaded here via JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
     </main>
-    <script src="../scripts/script.js?v=1"></script>
+    <script>
+        // Pass project members data to JavaScript
+        const projectMembers = <?php echo json_encode($project_members); ?>;
+
+        // Assign Specific Task Modal functionality
+        const assignSpecificTaskModal = document.getElementById('assignSpecificTaskModal');
+        const assignSpecificTaskCloseButtons = document.querySelectorAll('.assign-specific-task-close-button');
+
+        assignSpecificTaskCloseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                assignSpecificTaskModal.classList.remove('show');
+                assignSpecificTaskModal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == assignSpecificTaskModal) {
+                assignSpecificTaskModal.classList.remove('show');
+                assignSpecificTaskModal.style.display = 'none';
+            }
+        });
+
+        // Member Tasks Info Modal functionality
+        const memberTasksInfoModal = document.getElementById('memberTasksInfoModal');
+        const memberTasksInfoCloseButtons = document.querySelectorAll('.member-tasks-info-close-button');
+
+        memberTasksInfoCloseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                memberTasksInfoModal.classList.remove('show');
+                memberTasksInfoModal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == memberTasksInfoModal) {
+                memberTasksInfoModal.classList.remove('show');
+                memberTasksInfoModal.style.display = 'none';
+            }
+        });
+    </script>
+    <script src="../scripts/script.js?v=10"></script>
 </body>
 </html>

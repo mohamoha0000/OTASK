@@ -1020,3 +1020,108 @@ main{
 #exitProjectBtn:hover {
     background: #c0392b; /* Darker red on hover */
 }
+
+/* Styles for the Assign All Tasks Modal */
+.unassigned-task-list {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.unassigned-task-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.unassigned-task-list li:last-child {
+    border-bottom: none;
+}
+
+.unassigned-task-list li span {
+    font-weight: 500;
+    color: #333;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border-radius: 5px;
+}
+
+/* Styles for the new Assign Unassigned Task Modal */
+#assignUnassignedTaskModal .modal-content {
+    max-width: 600px;
+}
+
+#assignUnassignedTaskModal .modal-body {
+    padding-top: 15px;
+}
+
+#unassignedTasksForAssignmentList {
+    list-style: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+#unassignedTasksForAssignmentList li {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+#unassignedTasksForAssignmentList li:last-child {
+    border-bottom: none;
+}
+
+#unassignedTasksForAssignmentList li span {
+    font-weight: 600;
+    color: var(--color-text-main);
+    flex-basis: 100%; /* Take full width on small screens */
+    margin-bottom: 8px; /* Space below task title */
+}
+
+@media (min-width: 500px) {
+    #unassignedTasksForAssignmentList li span {
+        flex-basis: auto; /* Auto width on larger screens */
+        margin-bottom: 0;
+    }
+}
+
+.assign-member-dropdown {
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-card);
+    font-size: 0.9rem;
+    color: var(--color-text-main);
+    cursor: pointer;
+    margin-right: 10px; /* Space between dropdown and assign button */
+    flex-grow: 1; /* Allow dropdown to grow */
+    min-width: 150px; /* Minimum width for dropdown */
+}
+
+.assign-member-dropdown:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    outline: none;
+}
+
+#unassignedTasksForAssignmentList .btn-assign {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    min-width: 80px;
+}

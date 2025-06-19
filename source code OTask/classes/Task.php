@@ -50,6 +50,14 @@ class Task {
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$title, $description, $startDate, $endDate, $priority, $assignedUserId, $createdById]);
     }
+
+    public function createTaskInProject($projectId, $title, $description, $startDate, $endDate, $priority, $assignedUserId, $createdById) {
+        $sql = "INSERT INTO tasks (project_id, title, description, start_date, end_date, priority, status, assigned_user_id, created_by_id, created_at, last_mod)
+                VALUES (?, ?, ?, ?, ?, ?, 'to_do', ?, ?, NOW(), NOW())";
+        $stmt = $this->pdo->prepare($sql);
+        // assigned_user_id can be NULL, so we pass it directly.
+        return $stmt->execute([$projectId, $title, $description, $startDate, $endDate, $priority, $assignedUserId, $createdById]);
+    }
     public function updateTask($taskId, $title, $description, $startDate, $endDate, $priority, $status, $deliverableLink, $assignedUserId) {
         $sql = "UPDATE tasks SET title = ?, description = ?, start_date = ?, end_date = ?, priority = ?, status = ?, deliverable_link = ?, assigned_user_id = ?, last_mod = NOW() WHERE id = ?";
         $stmt = $this->pdo->prepare($sql);
@@ -238,5 +246,18 @@ class Task {
         }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getUnassignedTasksByProjectId($projectId) {
+        $sql = "SELECT id, title, description FROM tasks WHERE project_id = :projectId AND assigned_user_id IS NULL ORDER BY created_at DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':projectId' => $projectId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function assignTaskToUser($taskId, $userId) {
+        $sql = "UPDATE tasks SET assigned_user_id = ?, status = 'to_do', last_mod = NOW() WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$userId, $taskId]);
     }
 }
