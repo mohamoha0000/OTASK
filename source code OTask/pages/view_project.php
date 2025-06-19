@@ -94,6 +94,13 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_task"])) {
         $taskId = $_POST["task_id"] ?? null;
         $title = $_POST["task_title"] ?? '';
+        $description = $_POST["task_description"] ?? '';
+        $startDate = $_POST["start_date"] ?? '';
+        $endDate = $_POST["end_date"] ?? '';
+        $priority = $_POST["task_priority"] ?? '';
+        $status = $_POST["task_status"] ?? '';
+        $deliverableLink = $_POST["deliverable_link"] ?? '';
+        $assignedUserId = $_POST["assigned_user_id"] ?? null;
 
         $errors = [];
 
@@ -323,7 +330,7 @@
             case 'pending_review':  return 'Pending Review';
             case 'revision_needed': return 'Revision Needed';
             case 'completed':       return 'Completed';
-            default:                return ucfirst(str_replace('_', ' ', $status));
+            default:                return ucfirst(str_replace('_', ' ', (string)$status));
         }
     }
 ?>
@@ -1050,6 +1057,9 @@
         &copy; <?= date('Y') ?> OTask. All rights reserved.
     </footer>
 
+    <script>
+        const currentUserId = <?= json_encode($user_id) ?>;
+    </script>
     <script src="../scripts/script.js?v=3"></script>
 </body>
 </html>
