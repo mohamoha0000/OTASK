@@ -829,11 +829,28 @@ foreach ($project_tasks as $proj_task) {
             }
             document.getElementById(tabName).style.display = "block";
             evt.currentTarget.className += " active";
+
+            // Update URL with tab parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tabName);
+            window.history.replaceState({}, '', url.toString());
         }
 
-        // Set default tab to open
+        // Set default tab to open based on URL or click the first tab
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementsByClassName('tab-button')[0].click(); // Clicks the first tab (Members) by default
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+
+            if (activeTab) {
+                const tabButton = document.querySelector(`.tab-button[onclick*='${activeTab}']`);
+                if (tabButton) {
+                    tabButton.click();
+                } else {
+                    document.getElementsByClassName('tab-button')[0].click(); // Default to first tab if URL param is invalid
+                }
+            } else {
+                document.getElementsByClassName('tab-button')[0].click(); // Clicks the first tab (Members) by default
+            }
 
             // Get elements for invite member modal
             const newMemberBtn = document.getElementById('newMemberBtn');
@@ -906,7 +923,7 @@ foreach ($project_tasks as $proj_task) {
                         if (result.success) {
                             alert('Task created successfully!');
                             newTaskModal.classList.remove('show');
-                            location.reload(); // Reload to update task list
+                            window.location.href = updateUrlParameter('tab', 'Tasks'); // Reload to update task list and stay on Tasks tab
                         } else {
                             alert('Error creating task: ' + result.message);
                         }
@@ -989,7 +1006,7 @@ foreach ($project_tasks as $proj_task) {
                 .then(data => {
                     if (data.success) {
                         alert(`${name} has been removed from the project successfully!`);
-                        location.reload(); // Reload to update member list
+                        window.location.href = updateUrlParameter('tab', 'Members'); // Reload to update member list and stay on Members tab
                     } else {
                         alert('Failed to remove member: ' + data.message);
                     }
@@ -1100,7 +1117,7 @@ foreach ($project_tasks as $proj_task) {
                             alert(`Task "${taskTitle}" assigned to ${currentMemberNameForAssignment} successfully!`);
                             document.getElementById('assignAllTasksModal').classList.remove('show');
                             document.getElementById('assignAllTasksModal').style.display = 'none';
-                            location.reload(); // Reload to update task lists
+                            window.location.href = updateUrlParameter('tab', 'Tasks'); // Reload to update task lists and stay on Tasks tab
                         } else {
                             alert('Failed to assign task: ' + data.message);
                         }
@@ -1128,7 +1145,7 @@ foreach ($project_tasks as $proj_task) {
                 .then(data => {
                     if (data.success) {
                         alert(`Task "${taskTitle}" has been deleted successfully!`);
-                        location.reload(); // Reload to update task list
+                        window.location.href = updateUrlParameter('tab', 'Tasks'); // Reload to update task list and stay on Tasks tab
                     } else {
                         alert('Failed to delete task: ' + data.message);
                     }
@@ -1158,7 +1175,7 @@ foreach ($project_tasks as $proj_task) {
                 .then(data => {
                     if (data.success) {
                         alert(`Task "${taskTitle}" has been unassigned successfully!`);
-                        location.reload(); // Reload to update task list
+                        window.location.href = updateUrlParameter('tab', 'Tasks'); // Reload to update task list and stay on Tasks tab
                     } else {
                         alert('Failed to unassign task: ' + data.message);
                     }
@@ -1213,7 +1230,7 @@ foreach ($project_tasks as $proj_task) {
                     if (data.success) {
                         alert(`Task "${currentTaskTitleForAssignment}" assigned successfully!`);
                         document.getElementById('assignSpecificTaskModal').classList.remove('show');
-                        location.reload(); // Reload to update task lists
+                        window.location.href = updateUrlParameter('tab', 'Tasks'); // Reload to update task lists and stay on Tasks tab
                     } else {
                         alert('Failed to assign task: ' + data.message);
                     }
@@ -1405,6 +1422,13 @@ foreach ($project_tasks as $proj_task) {
                 memberTasksInfoModal.style.display = 'none';
             }
         });
+    </script>
+    <script>
+        function updateUrlParameter(param, value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set(param, value);
+            return url.toString();
+        }
     </script>
     <script src="../scripts/script.js?v=10"></script>
 </body>
