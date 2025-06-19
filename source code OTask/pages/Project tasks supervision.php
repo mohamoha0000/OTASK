@@ -46,6 +46,25 @@ if (!$project_info) {
 // Fetch members for the project
 $project_members = $project->getProjectMembers($project_id);
 
+// If the current user is a supervisor and not already in the project members list, add them
+if ($is_supervisor) {
+    $is_current_user_in_members = false;
+    foreach ($project_members as $member) {
+        if ($member['id'] == $current_user_id) {
+            $is_current_user_in_members = true;
+            break;
+        }
+    }
+    if (!$is_current_user_in_members) {
+        // Add current supervisor to the members list for assignment purposes
+        $project_members[] = [
+            'id' => $current_user_id,
+            'name' => $user_info['name'] . ' (You)', // Indicate it's the current user
+            'email' => $user_info['email'] // Assuming email is available
+        ];
+    }
+}
+
 // Fetch tasks for the project
 $statusFilter = isset($_GET['status_filter']) ? $_GET['status_filter'] : '';
 $assignedUserFilter = isset($_GET['assigned_user_filter']) ? $_GET['assigned_user_filter'] : '';

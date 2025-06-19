@@ -53,8 +53,9 @@ if (!$task_info || (int)$task_info['project_id'] !== $project_id) {
 }
 
 // Verify the assigned user is a member of the project
+// Verify the assigned user is a member of the project OR is the current supervisor assigning to themselves
 $is_member = $project->isUserProjectMember($project_id, $assigned_user_id);
-if (!$is_member) {
+if (!$is_member && !($assigned_user_id == $current_user_id && $is_supervisor)) {
     $response['message'] = 'Assigned user is not a member of this project.';
     echo json_encode($response);
     exit();
