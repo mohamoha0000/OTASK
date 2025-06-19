@@ -18,17 +18,23 @@ class Project {
 
     public function getProjectsJoinedCount($userId) {
         $stmt = $this->pdo->prepare("
-            SELECT COUNT(DISTINCT project_id) 
-            FROM project_members 
+            SELECT COUNT(DISTINCT project_id)
+            FROM project_members
             WHERE user_id = ?
         ");
         $stmt->execute([$userId]);
         return (int)$stmt->fetchColumn();
     }
 
+    public function getProjectsSupervisedCount($userId) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM projects WHERE supervisor_id = ?");
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
     public function getActiveProjectsCount($userId) {
         $stmt = $this->pdo->prepare("
-            SELECT COUNT(DISTINCT p.id) 
+            SELECT COUNT(DISTINCT p.id)
             FROM projects p
             LEFT JOIN project_members pm ON p.id = pm.project_id
             WHERE p.supervisor_id = :uid OR pm.user_id = :uid
@@ -36,6 +42,13 @@ class Project {
         $stmt->execute(['uid' => $userId]);
         return (int)$stmt->fetchColumn();
     }
+
+    // Admin Dashboard Methods
+    public function getTotalProjectCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM projects");
+        return (int)$stmt->fetchColumn();
+    }
+
     public function isUserProjectSupervisor($projectId, $userId) {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM projects WHERE id = ? AND supervisor_id = ?");
         $stmt->execute([$projectId, $userId]);

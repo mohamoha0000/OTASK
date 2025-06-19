@@ -397,6 +397,9 @@
                 <li><a href="dashboard.php" class="active">Dashboard</a></li>
                 <li><a href="mytask.php">My Tasks</a></li>
                 <li><a href="projects.php">Projects</a></li>
+                <?php if ($user_role === 'admin'): ?>
+                <li><a href="dashboardadmin.php">Admin Dashboard</a></li>
+                <?php endif; ?>
             </ul>
             <div class="user-menu">
                 <div class="notification-icon" onclick="window.location.href='notifications.php'">

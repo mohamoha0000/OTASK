@@ -143,4 +143,8 @@ class Notification {
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
         return $stmt->execute();
     }
+    public function getTotalNotificationCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications");
+        return (int)$stmt->fetchColumn();
+    }
 }

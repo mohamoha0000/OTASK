@@ -80,9 +80,64 @@ class User {
     }
 
     public function getAllUsers() {
-        $stmt = $this->db->prepare("SELECT id, name FROM users ORDER BY name ASC");
+        $stmt = $this->db->prepare("SELECT id, name, email, created_at FROM users ORDER BY name ASC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function searchUsers($searchTerm, $limit, $offset) {
+        $searchTerm = '%' . $searchTerm . '%';
+        $stmt = $this->db->prepare("SELECT id, name, email, created_at FROM users WHERE name LIKE ? OR email LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?");
+        // Explicitly cast limit and offset to integer to prevent SQL syntax errors
+        $stmt->bindValue(1, $searchTerm);
+        $stmt->bindValue(2, $searchTerm);
+        $stmt->bindValue(3, (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(4, (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countSearchUsers($searchTerm) {
+        $searchTerm = '%' . $searchTerm . '%';
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE name LIKE ? OR email LIKE ?");
+        $stmt->execute([$searchTerm, $searchTerm]);
+        return $stmt->fetchColumn();
+    }
+
+    public function deleteUser($userId) {
+        try {
+            $this->db->beginTransaction();
+
+            // Unassign tasks from this user
+            $stmtTasks = $this->db->prepare("UPDATE tasks SET assigned_user_id = NULL WHERE assigned_user_id = ?");
+            $stmtTasks->execute([$userId]);
+
+            // Remove user from project_members
+            $stmtMembers = $this->db->prepare("DELETE FROM project_members WHERE user_id = ?");
+            $stmtMembers->execute([$userId]);
+
+            // Transfer ownership of projects where this user is supervisor (or delete them, depending on policy)
+            // For now, let's set supervisor_id to NULL or a default admin ID if available.
+            // A more robust solution might involve transferring to another admin or deleting projects.
+            // For simplicity, let's set to NULL, which might require UI handling for unassigned projects.
+            $stmtProjects = $this->db->prepare("UPDATE projects SET supervisor_id = NULL WHERE supervisor_id = ?");
+            $stmtProjects->execute([$userId]);
+
+            // Delete notifications sent to or from this user
+            $stmtNotifications = $this->db->prepare("DELETE FROM notifications WHERE sender_id = ? OR recipient_id = ?");
+            $stmtNotifications->execute([$userId, $userId]);
+
+            // Finally, delete the user
+            $stmtUser = $this->db->prepare("DELETE FROM users WHERE id = ?");
+            $stmtUser->execute([$userId]);
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error deleting user: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getUserByEmail($email) {

@@ -8,6 +8,18 @@ class Task {
     }
 
  
+    public function getTotalTasksForUser($userId) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tasks WHERE assigned_user_id = ?");
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getTasksCreatedByUser($userId) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tasks WHERE created_by_id = ?");
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    }
+
     public function getTaskCountForUser($userId, $status) {
         switch ($status) {
             case 'active':
@@ -44,6 +56,23 @@ class Task {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // Admin Dashboard Methods
+    public function getTotalTaskCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM tasks");
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getCompletedTaskCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM tasks WHERE status = 'completed'");
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getOverdueTaskCount() {
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM tasks WHERE status != 'completed' AND end_date IS NOT NULL AND end_date < NOW()");
+        return (int)$stmt->fetchColumn();
+    }
+
     public function createTask($title, $description, $startDate, $endDate, $priority, $assignedUserId, $createdById) {
         $sql = "INSERT INTO tasks (title, description, start_date, end_date, priority, status, assigned_user_id, created_by_id, created_at, last_mod)
                 VALUES (?, ?, ?, ?, ?, 'to_do', ?, ?, NOW(), NOW())";
@@ -268,4 +297,10 @@ class Task {
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$taskId]);
     }
+
+   public function getTasksAssignedToUser($userId) {
+       $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tasks WHERE assigned_user_id = ?");
+       $stmt->execute([$userId]);
+       return (int)$stmt->fetchColumn();
+   }
 }
