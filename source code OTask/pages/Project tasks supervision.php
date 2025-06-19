@@ -47,7 +47,9 @@ if (!$project_info) {
 $project_members = $project->getProjectMembers($project_id);
 
 // Fetch tasks for the project
-$project_tasks = $task->getTasksByProjectIdFiltered($project_id); // Using the filtered method for now, can add filters later
+$statusFilter = isset($_GET['status_filter']) ? $_GET['status_filter'] : '';
+$assignedUserFilter = isset($_GET['assigned_user_filter']) ? $_GET['assigned_user_filter'] : '';
+$project_tasks = $task->getTasksByProjectIdFiltered($project_id, $statusFilter, $assignedUserFilter);
 
 // Prepare data for members tab
 $members_data = [];
@@ -716,17 +718,16 @@ foreach ($project_tasks as $proj_task) {
 
         <div id="Tasks" class="tab-content">
             <button class="new-button" id="newTaskBtn">+ New Task</button>
-            <button class="new-button" id="assignUnassignedTaskBtn" style="background: linear-gradient(135deg, #1D4ED8, #3B82F6);">Assign Unassigned Task</button>
             <div class="search-bar">
                 <input type="text" id="taskSearchInput" placeholder="Search tasks...">
                 <span class="search-icon">🔍</span>
             </div>
-            <select class="select-owner">
-                <option value="">Select Owner</option>
+            <select class="select-owner" id="taskOwnerFilter">
+                <option value="">All Owners</option>
                 <?php foreach ($project_members as $member): ?>
-                    <option value="<?php echo htmlspecialchars($member['id']); ?>"><?php echo htmlspecialchars($member['name']); ?></option>
+                    <option value="<?php echo htmlspecialchars($member['id']); ?>" <?php echo ($assignedUserFilter == $member['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($member['name']); ?></option>
                 <?php endforeach; ?>
-                <option value="unassigned">Unassigned</option>
+                <option value="unassigned" <?php echo ($assignedUserFilter == 'unassigned') ? 'selected' : ''; ?>>Unassigned</option>
             </select>
             <div class="table-container">
                 <table>
@@ -914,21 +915,17 @@ foreach ($project_tasks as $proj_task) {
             }
 
             // Filter by owner for tasks
-            const selectOwner = document.querySelector('.select-owner');
-            if (selectOwner) {
-                selectOwner.addEventListener('change', function() {
-                    const filter = this.value.toLowerCase();
-                    const rows = document.querySelectorAll('#Tasks tbody tr');
-                    rows.forEach(row => {
-                        const ownerSpan = row.querySelector('.owner-assigned, .owner-unassigned');
-                        const owner = ownerSpan ? ownerSpan.textContent.toLowerCase() : '';
-
-                        if (filter === '' || owner.includes(filter) || (filter === 'unassigned' && owner === 'unassigned')) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
+            const taskOwnerFilter = document.getElementById('taskOwnerFilter');
+            if (taskOwnerFilter) {
+                taskOwnerFilter.addEventListener('change', function() {
+                    const selectedOwner = this.value;
+                    const currentUrl = new URL(window.location.href);
+                    if (selectedOwner) {
+                        currentUrl.searchParams.set('assigned_user_filter', selectedOwner);
+                    } else {
+                        currentUrl.searchParams.delete('assigned_user_filter');
+                    }
+                    window.location.href = currentUrl.toString();
                 });
             }
 

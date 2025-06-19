@@ -209,7 +209,7 @@ class Task {
     public function getTasksByProjectIdFiltered($projectId, $statusFilter = '', $assignedUserFilter = '', $daysFilter = '') {
         $sql = "SELECT t.*, u.name as assigned_user_name
                 FROM tasks t
-                JOIN users u ON t.assigned_user_id = u.id
+                LEFT JOIN users u ON t.assigned_user_id = u.id
                 WHERE t.project_id = :projectId";
         $params = [':projectId' => $projectId];
 
@@ -217,7 +217,9 @@ class Task {
             $sql .= " AND t.status = :statusFilter";
             $params[':statusFilter'] = $statusFilter;
         }
-        if (!empty($assignedUserFilter)) {
+        if ($assignedUserFilter === 'unassigned') {
+            $sql .= " AND t.assigned_user_id IS NULL";
+        } elseif (!empty($assignedUserFilter)) {
             $sql .= " AND t.assigned_user_id = :assignedUserFilter";
             $params[':assignedUserFilter'] = $assignedUserFilter;
         }
