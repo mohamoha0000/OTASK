@@ -351,20 +351,44 @@ window.onload = function() {
     // Chat Icon functionality
     const chatIconHeader = document.querySelector('.chat-icon-header');
     const chatIconModal = document.querySelector('.chat-icon-modal');
+    
+    const projectChatModal = document.getElementById('projectChatModal');
+   
 
-    function handleChatClick() {
-        alert('Chat functionality will be implemented here!'); // Placeholder for chat
-        if (projectMenuModal) {
-            projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
-        }
+    if ( chatIconHeader) {
+        chatIconHeader.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default link behavior
+            projectChatModal.classList.add('show');
+            if (projectMenuModal) {
+                projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
+            }
+        });
     }
-
-    if (chatIconHeader) {
-        chatIconHeader.addEventListener('click', handleChatClick);
-    }
+    
     if (chatIconModal) {
-        chatIconModal.addEventListener('click', handleChatClick);
+        chatIconModal.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default link behavior
+            projectChatModal.classList.add('show');
+            if (projectMenuModal) {
+                projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
+            }
+        });
     }
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (projectChatModal) { // Add null check
+                projectChatModal.classList.remove('show');
+            }
+        });
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function(event) {
+        if (projectChatModal && event.target == projectChatModal) { // Add null check
+            projectChatModal.classList.remove('show');
+        }
+    });
 
     // Invite Member Modal functionality (original)
     const inviteMemberModal = document.getElementById('inviteMemberModal');

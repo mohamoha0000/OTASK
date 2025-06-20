@@ -341,6 +341,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project View: <?= $project ? htmlspecialchars($project['title']) : 'N/A' ?></title>
     <link rel="stylesheet" href="../style/dashboard.css?v=2">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         /* Inherit general styles from dashboard.css */
         .project-view-container {
@@ -1081,6 +1082,24 @@
         </div>
     </div>
 
+    <!-- Project chat Modal -->
+    <div id="projectChatModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>chat project</h2>
+                <span class="close-button project-menu-close-button">&times;</span>
+            </div>
+            <div class="project-chat-content">
+                <p>hhhhh</p>
+            </div>
+            <form id="chat-form">
+                <div>
+                   <input id="message" type="text"><button>send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <?php if (isset($_GET['invite_failed']) && isset($_SESSION['form_errors'])): ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1167,7 +1186,30 @@
                 });
             });
         }
+
+
+
+    function loadMessages() {
+        const params = new URLSearchParams(window.location.search);
+         $('.project-chat-content').load('../api/get_messages.php?project_id='+params.get('project_id'));
+    }
+
+    $('#chat-form').on('submit', function(e) {
+        const params = new URLSearchParams(window.location.search);
+        e.preventDefault();
+        $.post('../api/send_message.php', {
+            project_id:params.get('project_id'),
+            message: $('#message').val()
+        }, function() {
+            $('#message').val('');
+            loadMessages();
+        });
+    });
+
+    // تحديث تلقائي كل 2 ثانية
+    setInterval(loadMessages, 2000);
+    loadMessages();
     </script>
-    <script src="../scripts/script.js?v=3"></script>
+    <script src="../scripts/script.js?v=4"></script>
 </body>
 </html>
