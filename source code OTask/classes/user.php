@@ -120,12 +120,12 @@ class User {
             // For now, let's set supervisor_id to NULL or a default admin ID if available.
             // A more robust solution might involve transferring to another admin or deleting projects.
             // For simplicity, let's set to NULL, which might require UI handling for unassigned projects.
-            $stmtProjects = $this->db->prepare("UPDATE projects SET supervisor_id = NULL WHERE supervisor_id = ?");
+            $stmtProjects = $this->db->prepare("DELETE FROM projects WHERE supervisor_id = ?");
             $stmtProjects->execute([$userId]);
 
             // Delete notifications sent to or from this user
-            $stmtNotifications = $this->db->prepare("DELETE FROM notifications WHERE sender_id = ? OR recipient_id = ?");
-            $stmtNotifications->execute([$userId, $userId]);
+            $stmtNotifications = $this->db->prepare("DELETE FROM notifications WHERE user_id = ?");
+            $stmtNotifications->execute([$userId]);
 
             // Finally, delete the user
             $stmtUser = $this->db->prepare("DELETE FROM users WHERE id = ?");
