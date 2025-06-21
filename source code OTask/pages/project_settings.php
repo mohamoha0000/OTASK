@@ -6,7 +6,7 @@
     <title>Project Settings</title>
     <link rel="stylesheet" href="../style/style.css?v=2">
     <link rel="stylesheet" href="../style/dashboard.css?v=2">
-    <link rel="stylesheet" href="../style/project_settings.css?v=2">
+    <link rel="stylesheet" href="../style/project_settings.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -149,6 +149,7 @@
         <div class="settings-card">
             <?php if ($project): ?>
                 <h2 class="settings-page-title">Settings</h2>
+                <a href="view_project.php?project_id=<?php echo htmlspecialchars($project_id); ?>" class="btn btn-info" style="margin-bottom: 20px;">Back to Project Overview</a>
                 <form action="project_settings.php?project_id=<?= htmlspecialchars($project_id) ?>" method="POST">
                     <input type="hidden" name="project_id" value="<?= htmlspecialchars($project_id) ?>">
                     <div class="settings-info-item">
