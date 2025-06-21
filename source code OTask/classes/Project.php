@@ -256,4 +256,9 @@ class Project {
             return false;
         }
     }
+    public function isPuplic($projectId){
+        $stmt = $this->pdo->prepare("SELECT visibility from projects WHERE id = :projectId");
+        $stmt->execute([':projectId' => $projectId]);
+        return $stmt->fetchColumn();
+    }
 }

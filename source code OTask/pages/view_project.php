@@ -15,10 +15,12 @@
     $pdo = $db->getConnection();
 
     if(!isset($_SESSION["user_id"])){
-        header("Location: login.php");
-        exit();
+       // header("Location: login.php");
+        //exit();
+        $user_id = 0;
+    }else{
+        $user_id = $_SESSION["user_id"];
     }
-    $user_id = $_SESSION["user_id"];
 
     $user = new User($pdo);
     $projectManager = new Project($pdo);
@@ -69,7 +71,7 @@
             $is_supervisor = $projectManager->isUserProjectSupervisor($project_id, $user_id);
             $is_member = $projectManager->isUserProjectMember($project_id, $user_id);
 
-            if (!$is_supervisor && !$is_member) {
+            if (!$is_supervisor && !$is_member && !$projectManager->isPuplic($project_id)) {
                 $error_message = "You do not have permission to view this project.";
                 $project = null; // Clear project data if no permission
             } else {
