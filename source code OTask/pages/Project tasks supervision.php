@@ -30,7 +30,7 @@ $current_user_id = $_SESSION['user_id'];
 $is_supervisor = $project->isUserProjectSupervisor($project_id, $current_user_id);
 $is_member = $project->isUserProjectMember($project_id, $current_user_id);
 
-if (!$is_supervisor && !$is_member) {
+if (!$is_supervisor) {
     // User is neither supervisor nor member, deny access
     header('Location: projects.php'); // Redirect to projects page or an access denied page
     exit();
