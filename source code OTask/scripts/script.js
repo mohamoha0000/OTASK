@@ -31,8 +31,6 @@ function showTextEffect(select,speed) {
         } 
     }, speed);
 }
-
-
 window.onload = function() {
     const mobileMenu = document.getElementById('mobile-menu');
     const navLinks = document.querySelector('.nav-links');
@@ -353,12 +351,16 @@ window.onload = function() {
     const chatIconModal = document.querySelector('.chat-icon-modal');
     
     const projectChatModal = document.getElementById('projectChatModal');
-   
 
     if ( chatIconHeader) {
         chatIconHeader.addEventListener('click', function(event) {
             event.preventDefault(); // Prevent default link behavior
             projectChatModal.classList.add('show');
+            try {
+                fristopenchat = true;
+            } catch (error) {
+                
+            }
             if (projectMenuModal) {
                 projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
             }
@@ -369,6 +371,11 @@ window.onload = function() {
         chatIconModal.addEventListener('click', function(event) {
             event.preventDefault(); // Prevent default link behavior
             projectChatModal.classList.add('show');
+            try {
+                fristopenchat = true;
+            } catch (error) {
+                
+            }
             if (projectMenuModal) {
                 projectMenuModal.classList.remove('show'); // Close project menu modal if opened from there
             }

@@ -1089,12 +1089,12 @@
                 <h2>chat project</h2>
                 <span class="close-button project-menu-close-button">&times;</span>
             </div>
-            <div class="project-chat-content">
+            <div class="project-chat-content" style="height: 400px;overflow:scroll;">
                 <p>hhhhh</p>
             </div>
             <form id="chat-form">
-                <div>
-                   <input id="message" type="text"><button>send</button>
+                <div class="form-group" style="position: relative;">
+                   <input id="message" placeholder="write message..." type="text" style="width: 100%;"><button style="background: none;border: none;padding: 0;cursor: pointer;"><img style="width: 30px;height: 30px;position: absolute;bottom: 5px;right:2px;" src="../imgs/send.png"></button>
                 </div>
             </form>
         </div>
@@ -1115,7 +1115,8 @@
     <footer style="text-align:center; padding:20px 0; color:#fff;">
         &copy; <?= date('Y') ?> OTask. All rights reserved.
     </footer>
-
+    <script>var fristopenchat = true;</script>
+    <script src="../scripts/script.js?v=8"></script>
     <script>
         const currentUserId = <?= json_encode($user_id) ?>;
 
@@ -1187,29 +1188,30 @@
             });
         }
 
-
-
     function loadMessages() {
         const params = new URLSearchParams(window.location.search);
          $('.project-chat-content').load('../api/get_messages.php?project_id='+params.get('project_id'));
+         if(fristopenchat){document.querySelector(".project-chat-content").scrollTop = document.querySelector(".project-chat-content").scrollHeight;fristopenchat =false;}
     }
 
     $('#chat-form').on('submit', function(e) {
         const params = new URLSearchParams(window.location.search);
         e.preventDefault();
-        $.post('../api/send_message.php', {
-            project_id:params.get('project_id'),
-            message: $('#message').val()
-        }, function() {
-            $('#message').val('');
-            loadMessages();
-        });
+        if($('#message').val()!=""){
+            $.post('../api/send_message.php', {
+                project_id:params.get('project_id'),
+                message: $('#message').val()
+            }, function() {
+                $('#message').val('');
+                loadMessages();
+                document.querySelector(".project-chat-content").scrollTop = document.querySelector(".project-chat-content").scrollHeight;
+            });
+        }
     });
 
     // تحديث تلقائي كل 2 ثانية
-    setInterval(loadMessages, 2000);
+    setInterval(loadMessages, 1000);
     loadMessages();
     </script>
-    <script src="../scripts/script.js?v=4"></script>
 </body>
 </html>
