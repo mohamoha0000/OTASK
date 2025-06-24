@@ -5,9 +5,9 @@ INSERT INTO users (id, name, email, password, role, remember_token, profile_pict
 (3, 'John Smith', 'elmeayouf.mohamed.solicode@gmail.com', '$2y$10$hvuOyrSyy01ucsBeiFvT4e6X9gNRgurcxanlIvI.QJEwuVUvG/jLe', 'member', NULL, NULL, NOW());
 
 INSERT INTO projects (id, title, description, visibility, supervisor_id, created_at) VALUES
-(1, 'Admin Project', 'Admin main project.', TRUE, 1, NOW()),
-(2, 'Jane Project', 'Jane personal project.', TRUE, 2, NOW()),
-(3, 'John Project', 'John personal project.', TRUE, 3, NOW());
+(1, 'ecomerce project', 'Admin main project.', TRUE, 1, NOW()),
+(2, 'full stak react', 'Jane personal project.', TRUE, 2, NOW()),
+(3, 'pyhon flask', 'John personal project.', TRUE, 3, NOW());
 
 INSERT INTO project_members (project_id, user_id) VALUES
 (1, 1), (1, 2), (1, 3),
@@ -15,44 +15,44 @@ INSERT INTO project_members (project_id, user_id) VALUES
 (3, 3), (3, 1), (3, 2);
 
 INSERT INTO tasks (project_id, title, description, start_date, end_date, last_mod, priority, status, assigned_user_id, created_by_id) VALUES
-(1, 'Admin T1', 'Initial setup files', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 1),
-(1, 'Admin T2', 'Prepare project brief', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 1),
-(1, 'Jane T1', 'Design wireframes', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 1),
-(1, 'Jane T2', 'Style landing page', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 1),
-(1, 'John T1', 'Database schema', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 1),
-(1, 'John T2', 'Auth system', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 1),
+(1, 'make hedere and footer', 'Initial setup files', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 1),
+(1, 'make Shopping cart js', 'Prepare project brief', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 1),
+(1, 'main sections html css js', 'Design wireframes', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 1),
+(1, 'style responsive', 'Style landing page', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 1),
+(1, 'make sql for database', 'Database schema', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 1),
+(1, 'login and sign up full stak', 'Auth system', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 1),
 
-(2, 'Jane T3', 'Add carousel', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 2),
-(2, 'Jane T4', 'Fix mobile navbar', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 2),
-(2, 'Admin T3', 'Setup git repo', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 2),
-(2, 'Admin T4', 'Write README', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 2),
-(2, 'John T3', 'Connect API', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 2),
-(2, 'John T4', 'Test endpoints', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 2),
+(2, 'Add carousel', 'Add carousel', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 2),
+(2, 'Fix mobile navbar', 'Fix mobile navbar', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 2),
+(2, 'Setup git repo', 'Setup git repo', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 2),
+(2, 'Write README', 'Write README', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 2),
+(2, 'Connect API', 'Connect API', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 2),
+(2, 'Test endpoints', 'Test endpoints', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 2),
 
-(3, 'John T5', 'Deploy to production', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 3),
-(3, 'John T6', 'Monitor logs', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 3),
-(3, 'Jane T5', 'UI final tweaks', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 3),
-(3, 'Jane T6', 'Color palette update', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 3),
-(3, 'Admin T5', 'Add cron jobs', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 3),
-(3, 'Admin T6', 'Setup SSL', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 3),
+(3, 'Deploy to production', 'Deploy to production', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 3),
+(3, 'Monitor logs', 'Monitor logs', NOW(), NOW(), NOW(), 'medium', 'to_do', 3, 3),
+(3, 'UI final tweaks', 'UI final tweaks', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 3),
+(3, 'Color palette update', 'Color palette update', NOW(), NOW(), NOW(), 'medium', 'to_do', 2, 3),
+(3, 'Add cron jobs', 'Add cron jobs', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 3),
+(3, 'Setup SSL', 'Setup SSL', NOW(), NOW(), NOW(), 'medium', 'to_do', 1, 3),
 
-(NULL, 'Admin Personal 1', 'Admin task A', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
-(NULL, 'Admin Personal 2', 'Admin task B', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
-(NULL, 'Admin Personal 3', 'Admin task C', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
-(NULL, 'Admin Personal 4', 'Admin task D', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
-(NULL, 'Admin Personal 5', 'Admin task E', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
+(NULL, 'Personal task 1', 'Admin task A', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
+(NULL, 'Personal task 2', 'Admin task B', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
+(NULL, 'Personal task 3', 'Admin task C', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
+(NULL, 'Personal task 4', 'Admin task D', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
+(NULL, 'Personal task 5', 'Admin task E', NOW(), NOW(), NOW(), 'low', 'to_do', 1, 1),
 
-(NULL, 'Jane Personal 1', 'Jane task A', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
-(NULL, 'Jane Personal 2', 'Jane task B', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
-(NULL, 'Jane Personal 3', 'Jane task C', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
-(NULL, 'Jane Personal 4', 'Jane task D', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
-(NULL, 'Jane Personal 5', 'Jane task E', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
+(NULL, 'Personal task 1', 'Jane task A', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
+(NULL, 'Personal task 2', 'Jane task B', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
+(NULL, 'Personal task 3', 'Jane task C', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
+(NULL, 'Personal task 4', 'Jane task D', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
+(NULL, 'Personal task 5', 'Jane task E', NOW(), NOW(), NOW(), 'low', 'to_do', 2, 2),
 
-(NULL, 'John Personal 1', 'John task A', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
-(NULL, 'John Personal 2', 'John task B', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
-(NULL, 'John Personal 3', 'John task C', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
-(NULL, 'John Personal 4', 'John task D', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
-(NULL, 'John Personal 5', 'John task E', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3);
+(NULL, 'John Personal task 1', 'John task A', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
+(NULL, 'John Personal task 2', 'John task B', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
+(NULL, 'John Personal task 3', 'John task C', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
+(NULL, 'John Personal task 4', 'John task D', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3),
+(NULL, 'John Personal task 5', 'John task E', NOW(), NOW(), NOW(), 'low', 'to_do', 3, 3);
 
 INSERT INTO chat_messages (project_id, sender_id, message, sent_at) VALUES
 (1, 1, 'Welcome to the Admin project!', NOW()),
