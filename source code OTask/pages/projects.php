@@ -43,6 +43,7 @@
             $error_message = "Project title cannot be empty.";
         } else {
             $new_project_id = $projectManager->createProject($project_title, $project_description, $user_id);
+            $projectManager->addProjectMember($pdo->lastInsertId(), $user_id);
             if ($new_project_id) {
                 // Optionally add the supervisor as a member automatically
                 // $projectManager->addProjectMember($new_project_id, $user_id);
