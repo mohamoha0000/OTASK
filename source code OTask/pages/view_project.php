@@ -211,7 +211,13 @@
                 }
 
                 if ($updateSuccess) {
-                    header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&task_updated=success&member=" . htmlspecialchars($assignedUserId));
+                    if($isProjectSupervisor){
+                      if($task['assigned_user_id']!=$user_id) $notificationManager->createNotification($task['assigned_user_id'] ,"task_update","project: ".$project["title"]."| name:(admine)","task update ". $task['title']."|status: ".$status, null, $user_id);
+                    }else{
+                      $idadmin=$project["supervisor_id"];
+                      $notificationManager->createNotification($idadmin,"task_update","project: ".$project["title"]."| name:".$user_name,"task update ". $task['title']."|status: ".$status, null, $user_id);
+                    }
+                    header("Location: view_project.php?project_id=" . htmlspecialchars($project_id) . "&task_updated=success&member=" . htmlspecialchars($task['assigned_user_id']));
                     exit();
                 } else {
                     if (!isset($error_message)) {
